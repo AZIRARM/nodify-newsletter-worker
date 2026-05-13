@@ -37,12 +37,12 @@ spring:
 
 nodify:
   api:
-    url: ${NODIFY_API_URL:https://nodify-api.azirar.ovh}
+    url: ${NODIFY_API_URL:https://your-nodify-instance.com}
     secret: ${NODIFY_API_SECRET:}
 
-
 webhook:
-  tracking-base-url: ${TRACKING_BASE_URL:https://nodify-newsletter.azirar.ovh}
+  tracking-base-url: ${TRACKING_BASE_URL:https://your-domain.com}
+
 scheduler:
   check-interval-ms: 60000
   retry:
