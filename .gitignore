@@ -23,4 +23,50 @@
 hs_err_pid*
 replay_pid*
 
-data/nodify-newsletter-workerdb.mv.db
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+data/
+*.db
+*.mv.db
+*.trace.db
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Temp
+tmp/
+temp/
+*.tmp
