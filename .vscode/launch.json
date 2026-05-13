@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "NewsletterApplication",
+            "request": "launch",
+            "mainClass": "com.nodify.newsletter.NewsletterApplication",
+            "projectName": "newsletter-ssg"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}
