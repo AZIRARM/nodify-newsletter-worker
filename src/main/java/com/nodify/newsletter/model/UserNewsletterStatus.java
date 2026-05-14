@@ -1,9 +1,11 @@
 package com.nodify.newsletter.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -19,7 +21,8 @@ public class UserNewsletterStatus {
     private Long id;
     @ManyToOne
     private User user;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "campaign_id")
     private Campaign campaign;
     @ManyToOne
     private Newsletter newsletter;
@@ -28,4 +31,5 @@ public class UserNewsletterStatus {
     private Boolean opened = false;
     private Boolean impacted = false;
     private String trackingId;
+    private Boolean emailSent = false;
 }

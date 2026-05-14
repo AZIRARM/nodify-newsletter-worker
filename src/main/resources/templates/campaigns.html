@@ -62,14 +62,12 @@
         </div>
     </div>
 
-    <!-- Modal Nouvelle Campagne -->
+    <!-- Modal Nouvelle Campagne (sans champ Folder) -->
     <div id="newCampaignModal" class="modal">
         <div class="modal-content">
             <h3 th:text="#{campaigns.new_campaign}">New Campaign</h3>
             <input type="text" id="campaignName" placeholder="Campaign name"
                 th:placeholder="#{campaigns.name_placeholder}">
-            <input type="text" id="campaignFolder" placeholder="Folder name"
-                th:placeholder="#{campaigns.folder_placeholder}">
             <select id="newsletterId">
                 <option value="">-- Select Newsletter --</option>
             </select>

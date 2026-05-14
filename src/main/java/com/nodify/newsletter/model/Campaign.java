@@ -17,14 +17,18 @@ public class Campaign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String campaignCode; // ← identifiant unique métier
     private String name;
     private String folder;
+
     @ManyToOne
     private Newsletter newsletter;
+
     private LocalDateTime scheduledStart;
     private LocalDateTime retryDateTime;
     private Integer retryIntervalMinutes;
     private Boolean active = true;
     private String status;
     private LocalDateTime firstSentAt;
+
 }

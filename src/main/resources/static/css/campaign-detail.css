@@ -1,0 +1,149 @@
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: 0.2s;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.detail-header {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.detail-header h1 {
+    font-size: 28px;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.detail-meta {
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.retry-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.users-table {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.users-table h3 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+}
+
+.status-open {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.status-not-open {
+    color: #ef4444;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.page-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.lang-switch {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.lang-switch a {
+    color: white;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.lang-switch a:hover {
+    text-decoration: underline;
+}
+
+.manage-users-btn {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 20px;
+    margin-left: 10px;
+    text-decoration: none;
+}
+
+.manage-users-btn:hover {
+    background: #2563eb;
+}

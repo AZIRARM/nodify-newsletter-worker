@@ -38,10 +38,10 @@ spring:
 nodify:
   api:
     url: ${NODIFY_API_URL:https://your-nodify-instance.com}
-    secret: ${NODIFY_API_SECRET:}
-
+    
 webhook:
   tracking-base-url: ${TRACKING_BASE_URL:https://your-domain.com}
+  secret: ${WEBHOOK_SECRET:}
 
 scheduler:
   check-interval-ms: 60000

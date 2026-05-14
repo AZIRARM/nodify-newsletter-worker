@@ -6,6 +6,7 @@ import com.nodify.newsletter.model.UserNewsletterStatus;
 import com.nodify.newsletter.repository.CampaignRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
 import com.nodify.newsletter.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,46 +21,51 @@ public class SchedulerService {
 
     @Autowired
     private CampaignRepository campaignRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private UserNewsletterStatusRepository statusRepository;
-
     @Autowired
     private EmailService emailService;
 
     @Async
+    @Transactional
     public void startCampaign(Campaign campaign) {
+        Long campaignId = campaign.getId();
+
+        System.out.println("Starting campaign: " + campaign.getName() + " (ID: " + campaignId + ")");
         campaign.setStatus("SENDING");
         campaignRepository.save(campaign);
 
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            boolean alreadySent = statusRepository.existsByCampaignAndUser(campaign, user);
-            if (alreadySent)
-                continue;
+        List<UserNewsletterStatus> campaignUsers = statusRepository.findByCampaign(campaign);
+        System.out.println("Found " + campaignUsers.size() + " users linked to campaign");
 
-            String language = user.getLanguage() != null ? user.getLanguage() : "FR";
-            emailService.sendNewsletter(user, campaign.getNewsletter(), campaign, language);
+        for (UserNewsletterStatus status : campaignUsers) {
+            if (status.getSentAt() == null) {
+                System.out.println("Sending to: " + status.getUser().getEmail());
+                emailService.sendNewsletter(status.getUser(), campaign.getNewsletter(), campaignId);
+            } else {
+                System.out.println("Already sent to: " + status.getUser().getEmail());
+            }
         }
 
         campaign.setStatus("COMPLETED");
         campaignRepository.save(campaign);
+        System.out.println("Campaign completed: " + campaign.getName());
     }
 
     @Async
+    @Transactional
     public void retryCampaign(Campaign campaign) {
+        Long campaignId = campaign.getId();
         List<UserNewsletterStatus> nonOpened = statusRepository.findByCampaignAndOpenedFalse(campaign);
 
-        for (UserNewsletterStatus status : nonOpened) {
-            User user = status.getUser();
-            String language = user.getLanguage() != null ? user.getLanguage() : "FR";
+        System.out
+                .println("Retrying campaign: " + campaign.getName() + " for " + nonOpened.size() + " non-opened users");
 
-            // Marquer l'ancien comme non impacté (si besoin)
-            // Créer un nouveau status pour la relance
-            emailService.sendNewsletter(user, campaign.getNewsletter(), campaign, language);
+        for (UserNewsletterStatus status : nonOpened) {
+            System.out.println("Retrying for: " + status.getUser().getEmail());
+            emailService.sendNewsletter(status.getUser(), campaign.getNewsletter(), campaignId);
         }
     }
 
@@ -69,18 +75,23 @@ public class SchedulerService {
 
         List<Campaign> toStart = campaignRepository.findByScheduledStartBeforeAndStatus(now, "SCHEDULED");
         for (Campaign campaign : toStart) {
+            System.out.println("Starting scheduled campaign: " + campaign.getName());
             startCampaign(campaign);
         }
 
         List<Campaign> toRetry = campaignRepository.findByRetryDateTimeBeforeAndActiveTrue(now);
         for (Campaign campaign : toRetry) {
+            System.out.println("Auto-retry for campaign: " + campaign.getName());
             retryCampaign(campaign);
-            if (campaign.getRetryIntervalMinutes() != null) {
+
+            if (campaign.getRetryIntervalMinutes() != null && campaign.getRetryIntervalMinutes() > 0) {
                 campaign.setRetryDateTime(now.plusMinutes(campaign.getRetryIntervalMinutes()));
                 campaignRepository.save(campaign);
+                System.out.println("Next retry scheduled at: " + campaign.getRetryDateTime());
             } else {
                 campaign.setActive(false);
                 campaignRepository.save(campaign);
+                System.out.println("Auto-retry disabled for campaign: " + campaign.getName());
             }
         }
     }

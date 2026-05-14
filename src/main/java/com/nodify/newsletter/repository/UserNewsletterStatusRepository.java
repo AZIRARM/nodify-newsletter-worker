@@ -3,7 +3,6 @@ package com.nodify.newsletter.repository;
 import com.nodify.newsletter.model.Campaign;
 import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,7 +21,6 @@ public interface UserNewsletterStatusRepository extends JpaRepository<UserNewsle
 
     List<UserNewsletterStatus> findByCampaignAndOpenedFalse(Campaign campaign);
 
-    // Correction : utiliser @Query au lieu de la dérivation
     @Query("SELECT s FROM UserNewsletterStatus s WHERE s.campaign = :campaign ORDER BY s.sentAt DESC")
     List<UserNewsletterStatus> findByCampaignOrderBySentAtDesc(@Param("campaign") Campaign campaign);
 
@@ -33,4 +31,11 @@ public interface UserNewsletterStatusRepository extends JpaRepository<UserNewsle
     long countOpenedByCampaign(@Param("campaign") Campaign campaign);
 
     Page<UserNewsletterStatus> findByCampaign(Campaign campaign, Pageable pageable);
+
+    List<UserNewsletterStatus> findByCampaign(Campaign campaign);
+
+    Optional<UserNewsletterStatus> findByCampaignAndUser(Campaign campaign, User user);
+
+    @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.sentAt IS NOT NULL")
+    long countSent();
 }

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - Nodify Newsletter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/users.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav-links">
+            <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/campaigns" class="nav-link"><i class="fas fa-list"></i> Campaigns</a>
+            <a href="/users" class="nav-link active"><i class="fas fa-users"></i> Users</a>
+        </div>
+
+        <div class="header">
+            <h1><i class="fas fa-users"></i> Users Management</h1>
+            <p>Manage your newsletter subscribers</p>
+        </div>
+
+        <div class="actions-bar">
+            <button class="btn-primary" onclick="openUserModal()"><i class="fas fa-plus"></i> Add User</button>
+            <button class="btn-secondary" onclick="exportUsers()"><i class="fas fa-download"></i> Export JSON</button>
+            <label class="btn-secondary" for="importFile"><i class="fas fa-upload"></i> Import JSON</label>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importUsers(this)">
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by email or name...">
+            <button onclick="searchUsers()"><i class="fas fa-search"></i> Search</button>
+        </div>
+
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="8" class="loading">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add User</h3>
+            <input type="hidden" id="userId">
+            <input type="email" id="userEmail" placeholder="Email" required>
+            <input type="text" id="userFirstName" placeholder="First Name">
+            <input type="text" id="userLastName" placeholder="Last Name">
+            <input type="text" id="userPhone" placeholder="Phone">
+            <input type="text" id="userAddress" placeholder="Address">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeUserModal()">Cancel</button>
+                <button class="btn-save" onclick="saveUser()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/users.js"></script>
+</body>
+
+</html>

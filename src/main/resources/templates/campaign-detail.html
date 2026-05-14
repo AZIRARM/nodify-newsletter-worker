@@ -10,142 +10,12 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            transition: 0.2s;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .detail-header {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .detail-header h1 {
-            font-size: 28px;
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
-
-        .detail-meta {
-            color: #64748b;
-            margin-bottom: 20px;
-        }
-
-        .detail-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .retry-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 20px;
-        }
-
-        .users-table {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .users-table h3 {
-            margin-bottom: 20px;
-            color: #1e293b;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .status-open {
-            color: #16a34a;
-            font-weight: 500;
-        }
-
-        .status-not-open {
-            color: #ef4444;
-        }
-
-        .pagination {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .page-btn {
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .page-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .lang-switch {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-
-        .lang-switch a {
-            color: white;
-            text-decoration: none;
-            margin: 0 5px;
-        }
-
-        .lang-switch a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/campaign-detail.css">
 </head>
 
 <body>
+    <input type="hidden" id="campaignId" th:value="${campaign.id}" />
+
     <div class="container">
         <div class="lang-switch">
             <a href="?lang=fr">🇫🇷 Français</a> |
@@ -187,8 +57,12 @@
                     </div>
                 </div>
             </div>
-            <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()"><i
-                    class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span></button>
+            <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()">
+                <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
+            </button>
+            <a th:href="@{/campaign/{id}/users(id=${campaign.id})}" class="manage-users-btn">
+                <i class="fas fa-users"></i> <span th:text="#{campaign.manage_users}">Manage Users</span>
+            </a>
         </div>
 
         <div class="users-table">
@@ -212,72 +86,13 @@
             <div class="pagination" id="pagination"></div>
         </div>
     </div>
-
-    <script>
-        let currentPage = 1;
-        const pageSize = 20;
-        let totalUsers = 0;
-        const campaignId = [[${ campaign.id }]];
-
-        async function loadCampaignStats() {
-            const response = await fetch(`/api/campaigns/${campaignId}/stats`);
-            const stats = await response.json();
-            document.getElementById('totalSent').textContent = stats.sentCount || 0;
-            document.getElementById('totalOpened').textContent = stats.openedCount || 0;
-            document.getElementById('openRate').textContent = (stats.openRate || 0) + '%';
-        }
-
-        async function loadUsers() {
-            const response = await fetch(`/api/campaigns/${campaignId}/users?page=${currentPage}&size=${pageSize}`);
-            const data = await response.json();
-            totalUsers = data.total;
-            renderUsers(data.users);
-            renderPagination();
-        }
-
-        function renderUsers(users) {
-            const tbody = document.getElementById('usersTableBody');
-            if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty">No users found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = users.map(user => `
-                <tr>
-                    <td>${escapeHtml(user.email)}</td>
-                    <td>${escapeHtml((user.firstName || '') + ' ' + (user.lastName || ''))}</td>
-                    <td>${formatDate(user.sentAt)}</td>
-                    <td>${formatDate(user.openedAt)}</td>
-                    <td class="${user.opened ? 'status-open' : 'status-not-open'}">${user.opened ? '✓ Opened' : '✗ Not opened'}</td>
-                </tr>
-            `).join('');
-        }
-
-        function renderPagination() {
-            const totalPages = Math.ceil(totalUsers / pageSize);
-            const container = document.getElementById('pagination');
-            if (totalPages <= 1) { container.innerHTML = ''; return; }
-            let html = '';
-            for (let i = 1; i <= totalPages; i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function goToPage(page) { currentPage = page; loadUsers(); }
-
-        async function retryCampaign() {
-            if (confirm('Retry sending to non-opened users?')) {
-                await fetch(`/api/campaigns/${campaignId}/retry`, { method: 'POST' });
-                alert('Retry started');
-            }
-        }
-
-        function formatDate(date) { return date ? new Date(date).toLocaleString() : '-'; }
-        function escapeHtml(text) { if (!text) return '-'; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-
-        loadCampaignStats();
-        loadUsers();
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.campaignId = [[${ campaign.id }]];
+        console.log('Campaign ID from server:', window.campaignId);
+        /*]]>*/
     </script>
+    <script src="/js/campaign-detail.js"></script>
 </body>
 
 </html>

@@ -9,9 +9,10 @@ public class WebhookPayload {
 
     @Data
     public static class ClientPayload {
-        private String code;
-        private String folder;
-        private Boolean ssg;
+        private String campaignCode;
+        private String newsletterCode;
+        private String contentCode;
+        private String scheduledStart;
         private String timestamp;
     }
 }

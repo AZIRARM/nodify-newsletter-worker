@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{campaign.manage_users_title}">Manage Users - Campaign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/campaign-users.css">
+</head>
+
+<body>
+    <input type="hidden" id="campaignId" th:value="${campaign.id}" />
+
+    <div class="container">
+        <a th:href="@{/campaign/{id}(id=${campaign.id})}" class="back-btn"><i class="fas fa-arrow-left"></i> <span
+                th:text="#{campaign.back_to_campaign}">Back to Campaign</span></a>
+
+        <div class="header">
+            <h1><i class="fas fa-users"></i> <span th:text="#{campaign.manage_users}">Manage Users</span></h1>
+            <p><span th:text="#{campaign.campaign_label}">Campaign</span>: <span th:text="${campaign.name}">-</span></p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('current')"><span th:text="#{campaign.current_users}">Current
+                    Users</span></button>
+            <button class="tab" onclick="showTab('available')"><span th:text="#{campaign.available_users}">Available
+                    Users</span></button>
+            <button class="tab" onclick="showTab('add')"><span th:text="#{campaign.add_new_user}">Add New
+                    User</span></button>
+            <button class="tab" onclick="showTab('import')"><span th:text="#{campaign.import_json}">Import
+                    JSON</span></button>
+        </div>
+
+        <!-- Current Users -->
+        <div id="currentPanel" class="panel active">
+            <div class="search-box">
+                <input type="text" id="currentSearch" th:placeholder="#{campaign.search_placeholder}">
+                <button onclick="loadCurrentUsers()"><i class="fas fa-search"></i> <span
+                        th:text="#{campaign.search}">Search</span></button>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th th:text="#{campaign.email}">Email</th>
+                        <th th:text="#{campaign.name_header}">Name</th>
+                        <th th:text="#{campaign.phone}">Phone</th>
+                        <th th:text="#{campaign.address}">Address</th>
+                        <th th:text="#{campaign.status}">Status</th>
+                        <th th:text="#{campaign.action}">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="currentUsersBody">
+                    <tr>
+                        <td colspan="6" class="loading" th:text="#{campaign.loading}">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="currentPagination" class="pagination"></div>
+        </div>
+
+        <!-- Available Users -->
+        <div id="availablePanel" class="panel">
+            <div class="search-box">
+                <input type="text" id="availableSearch" th:placeholder="#{campaign.search_placeholder}">
+                <button onclick="loadAvailableUsers()"><i class="fas fa-search"></i> <span
+                        th:text="#{campaign.search}">Search</span></button>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th th:text="#{campaign.email}">Email</th>
+                        <th th:text="#{campaign.name_header}">Name</th>
+                        <th th:text="#{campaign.phone}">Phone</th>
+                        <th th:text="#{campaign.address}">Address</th>
+                        <th th:text="#{campaign.action}">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="availableUsersBody">
+                    <tr>
+                        <td colspan="5" class="loading" th:text="#{campaign.loading}">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add New User -->
+        <div id="addPanel" class="panel">
+            <h3 th:text="#{campaign.create_new_user}">Create New User</h3>
+            <input type="text" id="newEmail" th:placeholder="#{campaign.email_placeholder}">
+            <input type="text" id="newFirstName" th:placeholder="#{campaign.first_name_placeholder}">
+            <input type="text" id="newLastName" th:placeholder="#{campaign.last_name_placeholder}">
+            <input type="text" id="newPhone" th:placeholder="#{campaign.phone_placeholder}">
+            <input type="text" id="newAddress" th:placeholder="#{campaign.address_placeholder}">
+            <button onclick="createAndAddUser()"><span th:text="#{campaign.create_and_add}">Create & Add to
+                    Campaign</span></button>
+        </div>
+
+        <!-- Import JSON -->
+        <div id="importPanel" class="panel">
+            <h3 th:text="#{campaign.import_users_title}">Import Users from JSON</h3>
+            <p th:text="#{campaign.json_format}">JSON format: [{"email":"...", "firstname":"...", "lastname":"...",
+                "phone":"...", "address":"..."}]</p>
+            <textarea id="jsonImport" rows="10" th:placeholder="#{campaign.json_placeholder}"></textarea>
+            <button onclick="importUsers()"><span th:text="#{campaign.import_button}">Import & Add to
+                    Campaign</span></button>
+        </div>
+    </div>
+
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3 th:text="#{campaign.user_details}">User Details</h3>
+            <div id="modalContent"></div>
+            <div class="modal-buttons">
+                <button onclick="closeModal()"><span th:text="#{campaign.close}">Close</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/campaign-users.js"></script>
+</body>
+
+</html>

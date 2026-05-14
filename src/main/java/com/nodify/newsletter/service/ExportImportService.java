@@ -15,13 +15,10 @@ public class ExportImportService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private NewsletterRepository newsletterRepository;
-
     @Autowired
     private CampaignRepository campaignRepository;
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     public byte[] exportAll() throws java.io.IOException {
@@ -33,8 +30,8 @@ public class ExportImportService {
     }
 
     public void importAll(InputStream in) throws java.io.IOException {
+        @SuppressWarnings("unchecked")
         Map<String, Object> importData = mapper.readValue(in, Map.class);
-
         System.out.println("Import not fully implemented - handle carefully");
     }
 }

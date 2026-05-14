@@ -21,15 +21,12 @@ public class ExportImportController {
     @GetMapping("/export")
     public ResponseEntity<InputStreamResource> export() throws IOException {
         byte[] data = exportImportService.exportAll();
-        ByteArrayInputStream bis = new ByteArrayInputStream(data);
-
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "attachment; filename=newsletter-backup.json");
-
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new InputStreamResource(bis));
+                .body(new InputStreamResource(new ByteArrayInputStream(data)));
     }
 
     @PostMapping("/import")
