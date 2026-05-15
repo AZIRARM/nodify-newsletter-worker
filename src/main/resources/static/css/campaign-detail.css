@@ -147,3 +147,62 @@ th {
 .manage-users-btn:hover {
     background: #2563eb;
 }
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.view-newsletter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.view-newsletter-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.detail-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.retry-btn,
+.manage-users-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.retry-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.manage-users-btn {
+    background: #3b82f6;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.manage-users-btn:hover {
+    background: #2563eb;
+}

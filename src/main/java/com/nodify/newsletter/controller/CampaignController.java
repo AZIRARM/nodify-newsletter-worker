@@ -1,9 +1,11 @@
 package com.nodify.newsletter.controller;
 
 import com.nodify.newsletter.model.Campaign;
+import com.nodify.newsletter.model.Newsletter;
 import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
 import com.nodify.newsletter.repository.CampaignRepository;
+import com.nodify.newsletter.repository.NewsletterRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
 import com.nodify.newsletter.repository.UserRepository;
 import com.nodify.newsletter.service.SchedulerService;
@@ -31,6 +33,8 @@ public class CampaignController {
     private UserNewsletterStatusRepository statusRepository;
     @Autowired
     private SchedulerService schedulerService;
+    @Autowired
+    private NewsletterRepository newsletterRepository;
 
     @GetMapping("/campaign/{id}")
     public String campaignDetail(@PathVariable Long id, Model model) {
@@ -194,5 +198,15 @@ public class CampaignController {
         }
         schedulerService.retryCampaign(campaign);
         return ResponseEntity.ok().body(Map.of("success", true));
+    }
+
+    @GetMapping("/newsletter/{id}")
+    public String viewNewsletter(@PathVariable Long id, Model model) {
+        Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
+        if (newsletter == null) {
+            return "redirect:/campaigns";
+        }
+        model.addAttribute("newsletter", newsletter);
+        return "newsletter-view";
     }
 }

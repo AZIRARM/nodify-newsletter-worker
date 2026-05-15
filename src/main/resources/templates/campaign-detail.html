@@ -25,7 +25,13 @@
             <a href="?lang=pt">🇵🇹 Português</a>
         </div>
 
-        <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> <span th:text="#{dashboard.back}">Back</span></a>
+        <div class="action-buttons">
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> <span
+                    th:text="#{dashboard.back}">Back</span></a>
+            <a th:href="@{/newsletter/{id}(id=${campaign.newsletter.id})}" class="view-newsletter-btn">
+                <i class="fas fa-eye"></i> <span th:text="#{campaign.view_newsletter}">View Newsletter</span>
+            </a>
+        </div>
 
         <div class="detail-header">
             <h1><i class="fas fa-campaign"></i> <span th:text="${campaign.name}">Campaign Name</span></h1>
@@ -57,12 +63,14 @@
                     </div>
                 </div>
             </div>
-            <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()">
-                <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
-            </button>
-            <a th:href="@{/campaign/{id}/users(id=${campaign.id})}" class="manage-users-btn">
-                <i class="fas fa-users"></i> <span th:text="#{campaign.manage_users}">Manage Users</span>
-            </a>
+            <div class="detail-actions">
+                <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()">
+                    <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
+                </button>
+                <a th:href="@{/campaign/{id}/users(id=${campaign.id})}" class="manage-users-btn">
+                    <i class="fas fa-users"></i> <span th:text="#{campaign.manage_users}">Manage Users</span>
+                </a>
+            </div>
         </div>
 
         <div class="users-table">

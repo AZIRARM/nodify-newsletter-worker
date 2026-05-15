@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{newsletter.title} + ' - ' + ${newsletter.title}">Newsletter Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/newsletter-view.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="lang-switch">
+            <a href="?lang=fr">🇫🇷 Français</a> |
+            <a href="?lang=en">🇬🇧 English</a> |
+            <a href="?lang=es">🇪🇸 Español</a> |
+            <a href="?lang=de">🇩🇪 Deutsch</a> |
+            <a href="?lang=pt">🇵🇹 Português</a>
+        </div>
+
+        <a href="/campaigns" class="back-btn"><i class="fas fa-arrow-left"></i> <span th:text="#{newsletter.back}">Back
+                to Campaigns</span></a>
+
+        <div class="header">
+            <h1><i class="fas fa-envelope-open-text"></i> <span th:text="${newsletter.title}">Newsletter Title</span>
+            </h1>
+            <p><span th:text="#{newsletter.code}">Code</span>: <strong th:text="${newsletter.newsletterCode}">-</strong>
+            </p>
+            <p><span th:text="#{newsletter.subject}">Subject</span>: <strong th:text="${newsletter.subject}">-</strong>
+            </p>
+        </div>
+
+        <div class="content">
+            <div th:utext="${newsletter.contentHtml}">Newsletter HTML content</div>
+        </div>
+    </div>
+
+    <script src="/js/newsletter-view.js"></script>
+</body>
+
+</html>
