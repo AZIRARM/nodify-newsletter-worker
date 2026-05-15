@@ -32,6 +32,20 @@ public class SchedulerService {
     @Transactional
     public void startCampaign(Campaign campaign) {
         Long campaignId = campaign.getId();
+        LocalDateTime now = LocalDateTime.now();
+
+        if (campaign.getStartDate() != null && now.isBefore(campaign.getStartDate())) {
+            System.out.println(
+                    "Campaign " + campaign.getName() + " not started yet. Start date: " + campaign.getStartDate());
+            return;
+        }
+
+        if (campaign.getEndDate() != null && now.isAfter(campaign.getEndDate())) {
+            System.out.println("Campaign " + campaign.getName() + " has expired. End date: " + campaign.getEndDate());
+            campaign.setStatus("EXPIRED");
+            campaignRepository.save(campaign);
+            return;
+        }
 
         System.out.println("Starting campaign: " + campaign.getName() + " (ID: " + campaignId + ")");
         campaign.setStatus("SENDING");

@@ -51,6 +51,8 @@ public class CampaignController {
     @PostMapping("/campaign/{id}/schedule")
     public String updateSchedule(@PathVariable Long id,
             @RequestParam(required = false) String scheduledStart,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Integer retryIntervalMinutes,
             @RequestParam(required = false) Boolean active) {
         Campaign campaign = campaignRepository.findById(id).orElse(null);
@@ -58,6 +60,12 @@ public class CampaignController {
             if (scheduledStart != null && !scheduledStart.isEmpty()) {
                 campaign.setScheduledStart(LocalDateTime.parse(scheduledStart));
                 campaign.setStatus("SCHEDULED");
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                campaign.setStartDate(LocalDateTime.parse(startDate));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                campaign.setEndDate(LocalDateTime.parse(endDate));
             }
             if (retryIntervalMinutes != null) {
                 campaign.setRetryIntervalMinutes(retryIntervalMinutes);
@@ -209,4 +217,38 @@ public class CampaignController {
         model.addAttribute("newsletter", newsletter);
         return "newsletter-view";
     }
+
+    @PostMapping("/api/campaigns")
+    @ResponseBody
+    public void createCampaign(@RequestBody Map<String, Object> data) {
+        String name = (String) data.get("name");
+        Long newsletterId = Long.valueOf(data.get("newsletterId").toString());
+        String startDateStr = (String) data.get("startDate");
+        String endDateStr = (String) data.get("endDate");
+        String scheduledStartStr = (String) data.get("scheduledStart");
+
+        Newsletter newsletter = newsletterRepository.findById(newsletterId).orElse(null);
+        Campaign campaign = new Campaign();
+        campaign.setName(name);
+        campaign.setFolder(name);
+        campaign.setNewsletter(newsletter);
+
+        if (startDateStr != null && !startDateStr.isEmpty()) {
+            campaign.setStartDate(LocalDateTime.parse(startDateStr));
+        }
+        if (endDateStr != null && !endDateStr.isEmpty()) {
+            campaign.setEndDate(LocalDateTime.parse(endDateStr));
+        }
+        if (scheduledStartStr != null && !scheduledStartStr.isEmpty()) {
+            campaign.setScheduledStart(LocalDateTime.parse(scheduledStartStr));
+            campaign.setStatus("SCHEDULED");
+        } else {
+            campaign.setStatus("SENDING");
+        }
+
+        campaign.setActive(true);
+        campaign.setFirstSentAt(LocalDateTime.now());
+        campaignRepository.save(campaign);
+    }
+
 }

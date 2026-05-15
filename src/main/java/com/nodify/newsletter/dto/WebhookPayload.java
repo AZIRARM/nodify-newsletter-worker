@@ -1,5 +1,7 @@
 package com.nodify.newsletter.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
@@ -14,5 +16,7 @@ public class WebhookPayload {
         private String contentCode;
         private String scheduledStart;
         private String timestamp;
+        private String startDate;
+        private String endDate;
     }
 }

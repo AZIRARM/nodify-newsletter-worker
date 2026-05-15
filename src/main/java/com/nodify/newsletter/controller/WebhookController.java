@@ -53,6 +53,8 @@ public class WebhookController {
         String newsletterCode = payload.getClientPayload().getNewsletterCode();
         String contentCode = payload.getClientPayload().getContentCode();
         String scheduledStartStr = payload.getClientPayload().getScheduledStart();
+        String startDateStr = payload.getClientPayload().getStartDate();
+        String endDateStr = payload.getClientPayload().getEndDate();
 
         if (campaignCode == null || campaignCode.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "campaignCode is required"));
@@ -82,6 +84,13 @@ public class WebhookController {
             campaign.setStatus("SENDING");
             campaignRepository.save(campaign);
             schedulerService.startCampaign(campaign);
+        }
+
+        if (startDateStr != null && !startDateStr.isEmpty()) {
+            campaign.setStartDate(LocalDateTime.parse(startDateStr));
+        }
+        if (endDateStr != null && !endDateStr.isEmpty()) {
+            campaign.setEndDate(LocalDateTime.parse(endDateStr));
         }
 
         return ResponseEntity.ok().body(Map.of(

@@ -9,26 +9,14 @@
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 
 <body>
+    <div th:replace="fragments/header :: header"></div>
+
     <div class="container">
-        <div class="lang-switch">
-            <a href="?lang=fr">🇫🇷 Français</a> |
-            <a href="?lang=en">🇬🇧 English</a> |
-            <a href="?lang=es">🇪🇸 Español</a> |
-            <a href="?lang=de">🇩🇪 Deutsch</a> |
-            <a href="?lang=pt">🇵🇹 Português</a>
-        </div>
-
-        <div class="nav-links">
-            <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> <span
-                    th:text="#{dashboard.title}">Dashboard</span></a>
-            <a href="/campaigns" class="nav-link active"><i class="fas fa-list"></i> <span
-                    th:text="#{campaigns.title}">Campaigns</span></a>
-        </div>
-
         <div class="header">
             <h1><i class="fas fa-campaign"></i> <span th:text="#{campaigns.title}">Campaigns</span></h1>
             <p th:text="#{campaigns.subtitle}">Manage all your email campaigns</p>
@@ -62,7 +50,7 @@
         </div>
     </div>
 
-    <!-- Modal Nouvelle Campagne (sans champ Folder) -->
+    <!-- Modal Nouvelle Campagne -->
     <div id="newCampaignModal" class="modal">
         <div class="modal-content">
             <h3 th:text="#{campaigns.new_campaign}">New Campaign</h3>
@@ -71,7 +59,21 @@
             <select id="newsletterId">
                 <option value="">-- Select Newsletter --</option>
             </select>
-            <input type="datetime-local" id="scheduledStart">
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="datetime-local" id="newCampaignStartDate">
+                <small>Campaign start date (optional)</small>
+            </div>
+            <div class="form-group">
+                <label>End Date</label>
+                <input type="datetime-local" id="newCampaignEndDate">
+                <small>Campaign end date (optional)</small>
+            </div>
+            <div class="form-group">
+                <label>Scheduled Start</label>
+                <input type="datetime-local" id="newCampaignScheduledStart">
+                <small>Leave empty to start immediately</small>
+            </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeNewCampaignModal()"
                     th:text="#{campaigns.cancel}">Cancel</button>
@@ -80,7 +82,53 @@
         </div>
     </div>
 
+    <!-- Modal Schedule -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-alt"></i> Schedule Campaign</h3>
+                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <form id="scheduleForm">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="datetime-local" id="scheduleStartDate">
+                    <small>Campaign start date (optional)</small>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="datetime-local" id="scheduleEndDate">
+                    <small>Campaign end date (optional)</small>
+                </div>
+                <div class="form-group">
+                    <label>Scheduled Start</label>
+                    <input type="datetime-local" id="scheduleScheduledStart">
+                    <small>Leave empty to start immediately</small>
+                </div>
+                <div class="form-group">
+                    <label>Auto-retry interval (minutes)</label>
+                    <input type="number" id="scheduleRetryInterval" min="0" step="5">
+                    <small>0 = no auto-retry</small>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="scheduleActive" value="true">
+                    <label>Active (enable auto-retry)</label>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/js/campaigns.js"></script>
+    <script src="/js/campaign-schedule.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.currentPage = 'campaigns';
+        /*]]>*/
+    </script>
 </body>
 
 </html>

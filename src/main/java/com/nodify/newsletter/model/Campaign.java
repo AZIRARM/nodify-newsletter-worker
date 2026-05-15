@@ -31,4 +31,7 @@ public class Campaign {
     private String status;
     private LocalDateTime firstSentAt;
 
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
 }

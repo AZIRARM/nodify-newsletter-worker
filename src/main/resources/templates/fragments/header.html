@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="common-head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+
+<body>
+    <div th:fragment="header">
+        <div class="container">
+            <div class="lang-switch">
+                <a href="?lang=fr">🇫🇷 Français</a> |
+                <a href="?lang=en">🇬🇧 English</a> |
+                <a href="?lang=es">🇪🇸 Español</a> |
+                <a href="?lang=de">🇩🇪 Deutsch</a> |
+                <a href="?lang=pt">🇵🇹 Português</a>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link" th:classappend="${currentPage == 'dashboard' ? 'active' : ''}">
+                    <i class="fas fa-tachometer-alt"></i> <span th:text="#{dashboard.title}">Dashboard</span>
+                </a>
+                <a href="/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
+                    <i class="fas fa-list"></i> <span th:text="#{campaigns.title}">Campaigns</span>
+                </a>
+                <a href="/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
+                    <i class="fas fa-users"></i> <span th:text="#{dashboard.users}">Users</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

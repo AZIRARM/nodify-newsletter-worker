@@ -79,6 +79,32 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+async function loadCampaignData() {
+    const campaignId = document.getElementById('campaignId').value;
+    const response = await fetch(`/api/campaigns/${campaignId}`);
+    const data = await response.json();
+
+    window.campaignData = {
+        id: data.id,
+        startDate: data.startDate || '',
+        endDate: data.endDate || '',
+        scheduledStart: data.scheduledStart || '',
+        retryInterval: data.retryIntervalMinutes || 0,
+        active: data.active
+    };
+}
+
+function openScheduleModalFromDetail() {
+    openScheduleModal(
+        window.campaignData.id,
+        window.campaignData.startDate,
+        window.campaignData.endDate,
+        window.campaignData.scheduledStart,
+        window.campaignData.retryInterval,
+        window.campaignData.active
+    );
+}
 
 loadCampaignStats();
 loadUsers();
+loadCampaignData(); 

@@ -64,6 +64,12 @@ public class DashboardController {
             map.put("id", c.getId());
             map.put("name", c.getName());
             map.put("status", c.getStatus());
+            map.put("startDate", c.getStartDate());
+            map.put("endDate", c.getEndDate());
+            map.put("scheduledStart", c.getScheduledStart());
+            map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
+            map.put("active", c.getActive());
+
             long sent = statusRepository.countByCampaign(c);
             long opened = statusRepository.countOpenedByCampaign(c);
             map.put("sentCount", sent);
@@ -108,5 +114,11 @@ public class DashboardController {
                     return map;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/api/campaigns/{id}")
+    @ResponseBody
+    public Campaign getCampaign(@PathVariable Long id) {
+        return campaignRepository.findById(id).orElse(null);
     }
 }

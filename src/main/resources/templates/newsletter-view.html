@@ -7,19 +7,14 @@
     <title th:text="#{newsletter.title} + ' - ' + ${newsletter.title}">Newsletter Preview</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/newsletter-view.css">
 </head>
 
 <body>
-    <div class="container">
-        <div class="lang-switch">
-            <a href="?lang=fr">🇫🇷 Français</a> |
-            <a href="?lang=en">🇬🇧 English</a> |
-            <a href="?lang=es">🇪🇸 Español</a> |
-            <a href="?lang=de">🇩🇪 Deutsch</a> |
-            <a href="?lang=pt">🇵🇹 Português</a>
-        </div>
+    <div th:replace="fragments/header :: header"></div>
 
+    <div class="container">
         <a href="/campaigns" class="back-btn"><i class="fas fa-arrow-left"></i> <span th:text="#{newsletter.back}">Back
                 to Campaigns</span></a>
 
@@ -36,7 +31,11 @@
             <div th:utext="${newsletter.contentHtml}">Newsletter HTML content</div>
         </div>
     </div>
-
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.currentPage = 'campaigns';
+        /*]]>*/
+    </script>
     <script src="/js/newsletter-view.js"></script>
 </body>
 

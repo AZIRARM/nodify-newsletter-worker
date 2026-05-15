@@ -1,9 +1,16 @@
 let allCampaigns = [];
 
 async function loadCampaigns() {
-    const response = await fetch('/api/campaigns');
-    allCampaigns = await response.json();
-    applyFilters();
+    try {
+        const response = await fetch('/api/campaigns');
+        if (!response.ok) throw new Error('Failed to fetch campaigns');
+        allCampaigns = await response.json();
+        console.log('Campaigns loaded:', allCampaigns);
+        applyFilters();
+    } catch (error) {
+        console.error('Error loading campaigns:', error);
+        document.getElementById('campaignsGrid').innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> Error loading campaigns</div>';
+    }
 }
 
 function applyFilters() {
@@ -18,10 +25,19 @@ function applyFilters() {
 function renderCampaigns(campaigns) {
     const grid = document.getElementById('campaignsGrid');
     if (!campaigns || campaigns.length === 0) {
-        grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> <span th:text="#{campaigns.no_campaigns}">No campaigns found</span></div>';
+        grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns found</div>';
         return;
     }
-    grid.innerHTML = campaigns.map(c => `
+
+    grid.innerHTML = campaigns.map(c => {
+        const campaignId = c.id;
+        const startDate = c.startDate || '';
+        const endDate = c.endDate || '';
+        const scheduledStart = c.scheduledStart || '';
+        const retryInterval = c.retryIntervalMinutes || 0;
+        const active = c.active === true;
+
+        return `
         <div class="campaign-card">
             <div class="campaign-header">
                 <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
@@ -33,19 +49,36 @@ function renderCampaigns(campaigns) {
                 <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
             </div>
             <div class="campaign-actions">
-                <a href="/campaign/${c.id}" class="btn-view">📊 Details</a>
-                <a href="/campaign/${c.id}/schedule" class="btn-view">⏰ Schedule</a>
-                <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 Delete</button>
+                <a href="/campaign/${campaignId}" class="btn-view">Details</a>
+                <button class="btn-schedule" onclick="openScheduleModal(${campaignId}, '${startDate}', '${endDate}', '${scheduledStart}', ${retryInterval}, ${active})">Schedule</button>
+                <button class="btn-delete" onclick="deleteCampaign(${campaignId})">Delete</button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 async function deleteCampaign(id) {
-    if (confirm('Delete this campaign?')) {
+    if (!confirm('Delete this campaign?')) return;
+    try {
         await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
         loadCampaigns();
+    } catch (error) {
+        console.error('Error deleting campaign:', error);
+        alert('Error deleting campaign');
     }
+}
+
+async function openNewCampaignModal() {
+    await loadNewsletters();
+    document.getElementById('campaignName').value = '';
+    document.getElementById('newCampaignStartDate').value = '';
+    document.getElementById('newCampaignEndDate').value = '';
+    document.getElementById('newCampaignScheduledStart').value = '';
+    document.getElementById('newCampaignModal').style.display = 'flex';
+}
+
+function closeNewCampaignModal() {
+    document.getElementById('newCampaignModal').style.display = 'none';
 }
 
 async function loadNewsletters() {
@@ -53,36 +86,35 @@ async function loadNewsletters() {
     const newsletters = await response.json();
     const select = document.getElementById('newsletterId');
     select.innerHTML = '<option value="">-- Select Newsletter --</option>' +
-        newsletters.map(n => `<option value="${n.id}">${n.title}</option>`).join('');
+        newsletters.map(n => `<option value="${n.id}">${n.title || n.newsletterCode}</option>`).join('');
 }
 
 async function createCampaign() {
     const data = {
         name: document.getElementById('campaignName').value,
-        folder: document.getElementById('campaignFolder').value,
         newsletterId: document.getElementById('newsletterId').value,
-        scheduledStart: document.getElementById('scheduledStart').value
+        startDate: document.getElementById('newCampaignStartDate').value,
+        endDate: document.getElementById('newCampaignEndDate').value,
+        scheduledStart: document.getElementById('newCampaignScheduledStart').value
     };
-    if (!data.name || !data.folder || !data.newsletterId) {
-        alert('Please fill all fields');
+
+    if (!data.name || !data.newsletterId) {
+        alert('Please fill required fields');
         return;
     }
-    await fetch('/api/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    closeNewCampaignModal();
-    loadCampaigns();
-}
 
-function openNewCampaignModal() {
-    document.getElementById('newCampaignModal').style.display = 'flex';
-    loadNewsletters();
-}
-
-function closeNewCampaignModal() {
-    document.getElementById('newCampaignModal').style.display = 'none';
+    try {
+        await fetch('/api/campaigns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        closeNewCampaignModal();
+        loadCampaigns();
+    } catch (error) {
+        console.error('Error creating campaign:', error);
+        alert('Error creating campaign');
+    }
 }
 
 function escapeHtml(text) {
@@ -92,4 +124,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-loadCampaigns();
+// Initialisation
+document.addEventListener('DOMContentLoaded', function () {
+    loadCampaigns();
+
+    document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+});

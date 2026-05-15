@@ -9,22 +9,17 @@
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/campaign-detail.css">
 </head>
 
 <body>
+    <div th:replace="fragments/header :: header"></div>
+
     <input type="hidden" id="campaignId" th:value="${campaign.id}" />
 
     <div class="container">
-        <div class="lang-switch">
-            <a href="?lang=fr">🇫🇷 Français</a> |
-            <a href="?lang=en">🇬🇧 English</a> |
-            <a href="?lang=es">🇪🇸 Español</a> |
-            <a href="?lang=de">🇩🇪 Deutsch</a> |
-            <a href="?lang=pt">🇵🇹 Português</a>
-        </div>
-
         <div class="action-buttons">
             <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> <span
                     th:text="#{dashboard.back}">Back</span></a>
@@ -64,6 +59,9 @@
                 </div>
             </div>
             <div class="detail-actions">
+                <button class="schedule-btn" onclick="openScheduleModalFromDetail()">
+                    <i class="fas fa-calendar-alt"></i> Schedule
+                </button>
                 <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()">
                     <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
                 </button>
@@ -94,10 +92,51 @@
             <div class="pagination" id="pagination"></div>
         </div>
     </div>
+
+    <!-- Modal Schedule -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-alt"></i> Schedule Campaign</h3>
+                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <form id="scheduleForm">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="datetime-local" id="scheduleStartDate">
+                    <small>Campaign start date (optional)</small>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="datetime-local" id="scheduleEndDate">
+                    <small>Campaign end date (optional)</small>
+                </div>
+                <div class="form-group">
+                    <label>Scheduled Start</label>
+                    <input type="datetime-local" id="scheduleScheduledStart">
+                    <small>Leave empty to start immediately</small>
+                </div>
+                <div class="form-group">
+                    <label>Auto-retry interval (minutes)</label>
+                    <input type="number" id="scheduleRetryInterval" min="0" step="5">
+                    <small>0 = no auto-retry</small>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="scheduleActive" value="true">
+                    <label>Active (enable auto-retry)</label>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/campaign-schedule.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        window.campaignId = [[${ campaign.id }]];
-        console.log('Campaign ID from server:', window.campaignId);
+        window.currentPage = 'campaigns';
         /*]]>*/
     </script>
     <script src="/js/campaign-detail.js"></script>
