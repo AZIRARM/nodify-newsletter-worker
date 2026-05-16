@@ -4,16 +4,36 @@ server:
 spring:
   application:
     name: nodify-newsletter-worker
+  
+  # Configuration PostgreSQL
   datasource:
-    url: jdbc:h2:file:./data/nodify-newsletter-workerdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:nodify_newsletter}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA configuration pour PostgreSQL
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # ⚠️ changez à 'validate' en production
       globally_quoted_identifiers: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        format_sql: true
+    show-sql: false  # Mettre à true pour debug
+  
+  # Mail configuration (inchangée)
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -28,12 +48,19 @@ spring:
             required: true
       test-connection: false
 
+  # Thymeleaf (inchangé)
   thymeleaf:
     cache: false
+  
+  # Messages i18n (inchangé)
   messages:
     basename: i18n/messages
     encoding: UTF-8
     fallback-to-system-locale: false
+
+# Configuration spécifique PostgreSQL
+postgresql:
+  schema: public  # Schéma par défaut
 
 nodify:
   api:
@@ -52,3 +79,5 @@ scheduler:
 logging:
   level:
     com.nodify: DEBUG
+    org.hibernate.SQL: WARN  # Mettre à DEBUG pour voir les requêtes SQL
+    org.hibernate.type.descriptor.sql: WARN  # Mettre à TRACE pour voir les paramètres
