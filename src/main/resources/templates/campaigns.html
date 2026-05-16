@@ -43,7 +43,16 @@
             <button class="new-campaign-btn" onclick="openNewCampaignModal()"><i class="fas fa-plus"></i> <span
                     th:text="#{campaigns.new}">New Campaign</span></button>
         </div>
-
+        <div class="filter-group">
+            <label>Campaign Status</label>
+            <select id="campaignStatusFilter">
+                <option value="ALL">All</option>
+                <option value="active">Active</option>
+                <option value="scheduled">Not started</option>
+                <option value="inactive">Expired</option>
+            </select>
+        </div>
+        <br />
         <div class="campaigns-grid" id="campaignsGrid">
             <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading
                     campaigns...</span></div>

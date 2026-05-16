@@ -1,5 +1,4 @@
 let allCampaigns = [];
-
 async function loadCampaigns() {
     try {
         const response = await fetch('/api/campaigns');
@@ -15,14 +14,21 @@ async function loadCampaigns() {
 
 function applyFilters() {
     const status = document.getElementById('statusFilter').value;
+    const campaignStatus = document.getElementById('campaignStatusFilter').value;
     const search = document.getElementById('searchInput').value.toLowerCase();
+
     let filtered = allCampaigns;
     if (status !== 'ALL') filtered = filtered.filter(c => c.status === status);
+    if (campaignStatus !== 'ALL') filtered = filtered.filter(c => c.campaignStatus === campaignStatus);
     if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search));
-    renderCampaigns(filtered);
+
+    console.log('Filtered campaigns count:', filtered.length);
+    renderCampaigns(filtered);  // ← Assure-toi que cette ligne existe
 }
 
 function renderCampaigns(campaigns) {
+    console.log('Campaign status values:', campaigns.map(c => ({ name: c.name, campaignStatus: c.campaignStatus })));
+
     const grid = document.getElementById('campaignsGrid');
     if (!campaigns || campaigns.length === 0) {
         grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns found</div>';
@@ -37,11 +43,25 @@ function renderCampaigns(campaigns) {
         const retryInterval = c.retryIntervalMinutes || 0;
         const active = c.active === true;
 
+        let campaignStatusBadge = '';
+        if (c.campaignStatus === 'active') {
+            campaignStatusBadge = '<span class="campaign-status-badge active">🟢 Active</span>';
+        } else if (c.campaignStatus === 'scheduled') {
+            campaignStatusBadge = '<span class="campaign-status-badge scheduled">⏰ Not started</span>';
+        } else if (c.campaignStatus === 'inactive') {
+            campaignStatusBadge = '<span class="campaign-status-badge inactive">⚫ Expired</span>';
+        } else {
+            campaignStatusBadge = '<span class="campaign-status-badge">❓ Unknown</span>';
+        }
+
         return `
         <div class="campaign-card">
             <div class="campaign-header">
                 <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
-                <span class="status status-${c.status.toLowerCase()}">${c.status}</span>
+                <div class="campaign-badges">
+                    <span class="status status-${c.status.toLowerCase()}">${c.status}</span>
+                    ${campaignStatusBadge}
+                </div>
             </div>
             <div class="campaign-stats">
                 <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">Sent</div></div>
@@ -130,4 +150,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('searchInput').addEventListener('keyup', applyFilters);
     document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('campaignStatusFilter').addEventListener('change', applyFilters);
 });

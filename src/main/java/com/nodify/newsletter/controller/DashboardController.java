@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,8 @@ public class DashboardController {
     public List<Map<String, Object>> getCampaigns() {
         List<Campaign> campaigns = campaignRepository.findAll();
         List<Map<String, Object>> result = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
         for (Campaign c : campaigns) {
             Map<String, Object> map = new HashMap<>();
             map.put("id", c.getId());
@@ -69,6 +72,22 @@ public class DashboardController {
             map.put("scheduledStart", c.getScheduledStart());
             map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
             map.put("active", c.getActive());
+            if (c.getNewsletter() != null) {
+                map.put("newsletterId", c.getNewsletter().getId());
+                map.put("newsletterTitle", c.getNewsletter().getTitle());
+            } else {
+                map.put("newsletterId", null);
+                map.put("newsletterTitle", null);
+            }
+
+            // Ajout du statut de campagne
+            String campaignStatus = "active";
+            if (c.getEndDate() != null && now.isAfter(c.getEndDate())) {
+                campaignStatus = "inactive";
+            } else if (c.getStartDate() != null && now.isBefore(c.getStartDate())) {
+                campaignStatus = "scheduled";
+            }
+            map.put("campaignStatus", campaignStatus);
 
             long sent = statusRepository.countByCampaign(c);
             long opened = statusRepository.countOpenedByCampaign(c);

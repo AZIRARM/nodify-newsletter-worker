@@ -646,3 +646,8 @@ body {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
+
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.25);
+    font-weight: 500;
+}

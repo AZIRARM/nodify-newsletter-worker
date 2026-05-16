@@ -14,6 +14,8 @@ public class WebhookPayload {
         private String campaignCode;
         private String newsletterCode;
         private String contentCode;
+        private String title;
+        private String subject;
         private String scheduledStart;
         private String timestamp;
         private String startDate;

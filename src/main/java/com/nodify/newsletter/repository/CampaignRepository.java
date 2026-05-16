@@ -1,6 +1,8 @@
 package com.nodify.newsletter.repository;
 
 import com.nodify.newsletter.model.Campaign;
+import com.nodify.newsletter.model.Newsletter;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,4 +14,6 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long> {
     List<Campaign> findByRetryDateTimeBeforeAndActiveTrue(LocalDateTime date);
 
     Optional<Campaign> findByCampaignCode(String campaignCode);
+
+    long countByNewsletter(Newsletter newsletter);
 }

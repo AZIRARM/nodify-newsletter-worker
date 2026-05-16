@@ -24,34 +24,73 @@ async function loadStats() {
 
 async function loadCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading...</span></div>';
     try {
         const res = await fetch(`${API_BASE}/api/campaigns`);
         const campaigns = await res.json();
-        if (!campaigns || campaigns.length === 0) {
-            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns yet</div>';
+
+        const now = new Date();
+
+        const filteredCampaigns = campaigns.filter(c => {
+            if (c.endDate && new Date(c.endDate) < now) return false;
+            return true;
+        });
+
+        filteredCampaigns.sort((a, b) => {
+            const aStart = a.startDate ? new Date(a.startDate) : null;
+            const bStart = b.startDate ? new Date(b.startDate) : null;
+            const aIsActive = !aStart || aStart <= now;
+            const bIsActive = !bStart || bStart <= now;
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+            return 0;
+        });
+
+        if (!filteredCampaigns || filteredCampaigns.length === 0) {
+            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> <span th:text="#{dashboard.no_campaigns}">No campaigns yet</span></div>';
             return;
         }
-        grid.innerHTML = campaigns.map(c => `
+
+        grid.innerHTML = filteredCampaigns.map(c => {
+            const newsletterLink = c.newsletterId ? `/newsletter/${c.newsletterId}` : '#';
+            const newsletterTitle = c.newsletterTitle || 'Newsletter';
+
+            let scheduleInfo = '';
+            if (c.scheduledStart) {
+                scheduleInfo = `<div class="campaign-schedule">📅 <span th:text="#{campaign.scheduled}">Scheduled</span>: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
+            }
+            if (c.startDate) {
+                scheduleInfo += `<div class="campaign-start">🚀 <span th:text="#{campaign.start_date}">Start</span>: ${new Date(c.startDate).toLocaleString()}</div>`;
+            }
+            if (c.endDate) {
+                scheduleInfo += `<div class="campaign-end">🏁 <span th:text="#{campaign.end_date}">End</span>: ${new Date(c.endDate).toLocaleString()}</div>`;
+            }
+            if (c.campaignStatus === 'scheduled') {
+                scheduleInfo = `<div class="campaign-waiting">⏰ <span th:text="#{campaign.not_started}">Not started yet</span></div>` + scheduleInfo;
+            }
+
+            return `
             <div class="campaign-card">
                 <div class="campaign-header">
                     <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
                     <span class="status status-${c.status.toLowerCase()}">${c.status}</span>
                 </div>
+                ${scheduleInfo}
                 <div class="campaign-stats">
-                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">Sent</div></div>
-                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">Opened</div></div>
-                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label"><span th:text="#{campaign.sent}">Sent</span></div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label"><span th:text="#{campaign.opened}">Opened</span></div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label"><span th:text="#{campaign.rate}">Rate</span></div></div>
                 </div>
                 <div class="campaign-actions">
-                    <a href="/campaign/${c.id}" class="btn-view">📊 Details</a>
-                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 Delete</button>
+                    <a href="/campaign/${c.id}" class="btn-view">📊 <span th:text="#{campaign.details_btn}">Details</span></a>
+                    <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 <span th:text="#{campaign.view_newsletter}">View Newsletter</span></a>
+                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 <span th:text="#{campaign.delete_btn}">Delete</span></button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     } catch (error) {
         console.error('Error loading campaigns:', error);
-        grid.innerHTML = '<div class="empty">Error loading campaigns</div>';
+        grid.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> <span th:text="#{dashboard.error}">Error loading campaigns</span></div>';
     }
 }
 

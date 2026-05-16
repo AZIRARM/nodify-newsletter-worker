@@ -56,46 +56,67 @@ public class WebhookController {
         String startDateStr = payload.getClientPayload().getStartDate();
         String endDateStr = payload.getClientPayload().getEndDate();
 
-        if (campaignCode == null || campaignCode.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "campaignCode is required"));
-        }
+        // newsletterCode et contentCode sont obligatoires
         if (newsletterCode == null || newsletterCode.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "newsletterCode is required"));
         }
+        if (contentCode == null || contentCode.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "contentCode is required"));
+        }
 
+        String title = payload.getClientPayload().getTitle();
+        String subject = payload.getClientPayload().getSubject();
+
+        // Récupérer ou créer la newsletter
         Newsletter newsletter = newsletterService.findOrCreateByCode(newsletterCode);
-        NodifyContent content = nodifyClient.fetchContent(contentCode);
+        NodifyContent content = nodifyClient.fetchContent(contentCode, title, subject);
         newsletter = newsletterService.updateFromNodifyContent(newsletter, content);
 
-        Campaign campaign = campaignService.findOrCreateByCode(campaignCode);
-        campaign.setNewsletter(newsletter);
-        campaign.setName(campaignCode);
-        campaign.setCampaignCode(campaignCode);
+        // Si campaignCode est présent, créer ou mettre à jour la campagne
+        if (campaignCode != null && !campaignCode.isEmpty()) {
+            Campaign campaign = campaignService.findOrCreateByCode(campaignCode);
+            campaign.setNewsletter(newsletter);
+            campaign.setName(campaignCode);
+            campaign.setCampaignCode(campaignCode);
 
-        if (scheduledStartStr != null && !scheduledStartStr.isEmpty()) {
-            try {
-                campaign.setScheduledStart(LocalDateTime.parse(scheduledStartStr));
-                campaign.setStatus("SCHEDULED");
-                campaignRepository.save(campaign);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid date format"));
+            if (startDateStr != null && !startDateStr.isEmpty()) {
+                try {
+                    campaign.setStartDate(LocalDateTime.parse(startDateStr));
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Invalid startDate format"));
+                }
             }
-        } else {
-            campaign.setStatus("SENDING");
-            campaignRepository.save(campaign);
-            schedulerService.startCampaign(campaign);
+            if (endDateStr != null && !endDateStr.isEmpty()) {
+                try {
+                    campaign.setEndDate(LocalDateTime.parse(endDateStr));
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Invalid endDate format"));
+                }
+            }
+
+            if (scheduledStartStr != null && !scheduledStartStr.isEmpty()) {
+                try {
+                    campaign.setScheduledStart(LocalDateTime.parse(scheduledStartStr));
+                    campaign.setStatus("SCHEDULED");
+                    campaignRepository.save(campaign);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Invalid scheduledStart format"));
+                }
+            } else {
+                campaign.setStatus("SENDING");
+                campaignRepository.save(campaign);
+                schedulerService.startCampaign(campaign);
+            }
+
+            return ResponseEntity.ok().body(Map.of(
+                    "campaignId", campaign.getId(),
+                    "campaignCode", campaign.getCampaignCode(),
+                    "newsletterId", newsletter.getId(),
+                    "newsletterCode", newsletter.getNewsletterCode()));
         }
 
-        if (startDateStr != null && !startDateStr.isEmpty()) {
-            campaign.setStartDate(LocalDateTime.parse(startDateStr));
-        }
-        if (endDateStr != null && !endDateStr.isEmpty()) {
-            campaign.setEndDate(LocalDateTime.parse(endDateStr));
-        }
-
+        // Pas de campagne, juste la newsletter
         return ResponseEntity.ok().body(Map.of(
-                "campaignId", campaign.getId(),
-                "campaignCode", campaign.getCampaignCode(),
                 "newsletterId", newsletter.getId(),
                 "newsletterCode", newsletter.getNewsletterCode()));
     }
