@@ -16,7 +16,6 @@ public class UserNewsletterStatus {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "campaign_id")
     private Campaign campaign;
 
     @ManyToOne

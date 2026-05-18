@@ -256,3 +256,21 @@ textarea:focus {
 .loading i {
     margin-right: 8px;
 }
+
+.btn-users {
+    background: #17a2b8;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-users:hover {
+    background: #138496;
+}

@@ -62,12 +62,9 @@
                 <button class="schedule-btn" onclick="openScheduleModalFromDetail()">
                     <i class="fas fa-calendar-alt"></i> Schedule
                 </button>
-                <button class="retry-btn" th:if="${campaign.status == 'COMPLETED'}" onclick="retryCampaign()">
+                <button class="retry-btn" onclick="retryCampaign()">
                     <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
                 </button>
-                <a th:href="@{/campaign/{id}/users(id=${campaign.id})}" class="manage-users-btn">
-                    <i class="fas fa-users"></i> <span th:text="#{campaign.manage_users}">Manage Users</span>
-                </a>
             </div>
         </div>
 

@@ -23,7 +23,7 @@ function applyFilters() {
     if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search));
 
     console.log('Filtered campaigns count:', filtered.length);
-    renderCampaigns(filtered);  // ← Assure-toi que cette ligne existe
+    renderCampaigns(filtered);
 }
 
 function renderCampaigns(campaigns) {
@@ -70,7 +70,7 @@ function renderCampaigns(campaigns) {
             </div>
             <div class="campaign-actions">
                 <a href="/campaign/${campaignId}" class="btn-view">Details</a>
-                <button class="btn-schedule" onclick="openScheduleModal(${campaignId}, '${startDate}', '${endDate}', '${scheduledStart}', ${retryInterval}, ${active})">Schedule</button>
+                <button class="btn-schedule" onclick="openScheduleModal(${campaignId}, '${startDate.replace(/'/g, "\\'")}', '${endDate.replace(/'/g, "\\'")}', '${scheduledStart.replace(/'/g, "\\'")}', ${retryInterval}, ${active})">Schedule</button>
                 <button class="btn-delete" onclick="deleteCampaign(${campaignId})">Delete</button>
             </div>
         </div>
@@ -144,11 +144,14 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Initialisation
 document.addEventListener('DOMContentLoaded', function () {
     loadCampaigns();
 
-    document.getElementById('searchInput').addEventListener('keyup', applyFilters);
-    document.getElementById('statusFilter').addEventListener('change', applyFilters);
-    document.getElementById('campaignStatusFilter').addEventListener('change', applyFilters);
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const campaignStatusFilter = document.getElementById('campaignStatusFilter');
+
+    if (searchInput) searchInput.addEventListener('keyup', applyFilters);
+    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+    if (campaignStatusFilter) campaignStatusFilter.addEventListener('change', applyFilters);
 });

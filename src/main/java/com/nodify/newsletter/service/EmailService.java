@@ -30,15 +30,9 @@ public class EmailService {
     @Value("${webhook.tracking-base-url}")
     private String trackingBaseUrl;
 
-    public void sendNewsletter(User user, Newsletter newsletter, Long campaignId) {
+    public void sendNewsletter(User user, Newsletter newsletter) {
         if (mailSender == null) {
             System.out.println("⚠️ Mail service not configured. Email not sent to: " + user.getEmail());
-            return;
-        }
-
-        Campaign campaign = campaignRepository.findById(campaignId).orElse(null);
-        if (campaign == null) {
-            System.err.println("Campaign not found: " + campaignId);
             return;
         }
 
@@ -53,16 +47,6 @@ public class EmailService {
             helper.setSubject(newsletter.getSubject());
             helper.setText(newsletter.getContentHtml() + trackingPixel, true);
             mailSender.send(message);
-
-            UserNewsletterStatus status = new UserNewsletterStatus();
-            status.setUser(user);
-            status.setCampaign(campaign);
-            status.setNewsletter(newsletter);
-            status.setSentAt(LocalDateTime.now());
-            status.setTrackingId(trackingId);
-            status.setOpened(false);
-            status.setImpacted(false);
-            statusRepository.save(status);
 
         } catch (Exception e) {
             System.err.println("Failed to send email to " + user.getEmail() + ": " + e.getMessage());

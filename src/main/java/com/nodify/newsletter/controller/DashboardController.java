@@ -80,7 +80,6 @@ public class DashboardController {
                 map.put("newsletterTitle", null);
             }
 
-            // Ajout du statut de campagne
             String campaignStatus = "active";
             if (c.getEndDate() != null && now.isAfter(c.getEndDate())) {
                 campaignStatus = "inactive";
@@ -89,8 +88,8 @@ public class DashboardController {
             }
             map.put("campaignStatus", campaignStatus);
 
-            long sent = statusRepository.countByCampaign(c);
-            long opened = statusRepository.countOpenedByCampaign(c);
+            long sent = statusRepository.countByNewsletter(c.getNewsletter());
+            long opened = statusRepository.countOpenedByNewsletter(c.getNewsletter());
             map.put("sentCount", sent);
             map.put("openedCount", opened);
             map.put("openRate", sent > 0 ? (opened * 100 / sent) : 0);
@@ -139,5 +138,24 @@ public class DashboardController {
     @ResponseBody
     public Campaign getCampaign(@PathVariable Long id) {
         return campaignRepository.findById(id).orElse(null);
+    }
+
+    @GetMapping("/api/campaigns/{id}/stats")
+    @ResponseBody
+    public Map<String, Object> getCampaignStats(@PathVariable Long id) {
+        Campaign campaign = campaignRepository.findById(id).orElse(null);
+        Map<String, Object> stats = new HashMap<>();
+        if (campaign != null) {
+            long sentCount = statusRepository.countByCampaign(campaign);
+            long openedCount = statusRepository.countOpenedByCampaign(campaign);
+            stats.put("sentCount", sentCount);
+            stats.put("openedCount", openedCount);
+            stats.put("openRate", sentCount > 0 ? (openedCount * 100 / sentCount) : 0);
+        } else {
+            stats.put("sentCount", 0);
+            stats.put("openedCount", 0);
+            stats.put("openRate", 0);
+        }
+        return stats;
     }
 }

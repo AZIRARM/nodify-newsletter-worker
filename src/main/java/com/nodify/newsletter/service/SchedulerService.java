@@ -1,9 +1,14 @@
 package com.nodify.newsletter.service;
 
 import com.nodify.newsletter.model.Campaign;
+import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
+import com.nodify.newsletter.model.UserNewsletterSubscription;
 import com.nodify.newsletter.repository.CampaignRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
+import com.nodify.newsletter.repository.UserNewsletterSubscriptionRepository;
+import com.nodify.newsletter.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +17,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @EnableScheduling
@@ -23,6 +30,10 @@ public class SchedulerService {
     private UserNewsletterStatusRepository statusRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserNewsletterSubscriptionRepository subscriptionRepository;
 
     @Async
     @Transactional
@@ -43,11 +54,25 @@ public class SchedulerService {
         campaign.setStatus("SENDING");
         campaignRepository.save(campaign);
 
-        List<UserNewsletterStatus> campaignUsers = statusRepository.findByCampaign(campaign);
+        List<UserNewsletterSubscription> subscribers = subscriptionRepository
+                .findByNewsletter(campaign.getNewsletter());
 
-        for (UserNewsletterStatus status : campaignUsers) {
-            if (status.getSentAt() == null) {
-                emailService.sendNewsletter(status.getUser(), campaign.getNewsletter(), campaignId);
+        for (UserNewsletterSubscription subscription : subscribers) {
+            Optional<UserNewsletterStatus> existing = statusRepository.findByCampaignAndUser(campaign,
+                    subscription.getUser());
+            if (existing.isEmpty() || existing.get().getSentAt() == null) {
+                // Créer le status avant d'envoyer
+                UserNewsletterStatus status = new UserNewsletterStatus();
+                status.setUser(subscription.getUser());
+                status.setCampaign(campaign);
+                status.setNewsletter(campaign.getNewsletter());
+                status.setSentAt(LocalDateTime.now());
+                status.setOpened(false);
+                status.setImpacted(false);
+                status.setTrackingId(UUID.randomUUID().toString());
+                statusRepository.save(status);
+
+                emailService.sendNewsletter(subscription.getUser(), campaign.getNewsletter());
             }
         }
 
@@ -67,10 +92,14 @@ public class SchedulerService {
             return;
         }
 
-        List<UserNewsletterStatus> nonOpened = statusRepository.findByCampaignAndOpenedFalse(campaign);
+        List<UserNewsletterStatus> notSent = statusRepository.findByCampaignAndSentAtIsNull(campaign);
 
-        for (UserNewsletterStatus status : nonOpened) {
-            emailService.sendNewsletter(status.getUser(), campaign.getNewsletter(), campaignId);
+        for (UserNewsletterStatus status : notSent) {
+            status.setSentAt(LocalDateTime.now());
+            status.setTrackingId(UUID.randomUUID().toString());
+            statusRepository.save(status);
+
+            emailService.sendNewsletter(status.getUser(), campaign.getNewsletter());
         }
     }
 

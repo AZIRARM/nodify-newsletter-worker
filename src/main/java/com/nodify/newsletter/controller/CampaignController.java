@@ -81,12 +81,6 @@ public class CampaignController {
         return "redirect:/campaign/" + id;
     }
 
-    @GetMapping("/campaign/{id}/users")
-    public String manageUsers(@PathVariable Long id, Model model) {
-        model.addAttribute("campaign", campaignRepository.findById(id).orElse(null));
-        return "campaign-users";
-    }
-
     @GetMapping("/api/campaigns/{id}/users")
     @ResponseBody
     public Map<String, Object> getCampaignUsers(@PathVariable Long id,
@@ -112,88 +106,6 @@ public class CampaignController {
             return map;
         }).collect(Collectors.toList()));
         return result;
-    }
-
-    @GetMapping("/api/campaigns/{id}/available-users")
-    @ResponseBody
-    public List<Map<String, Object>> getAvailableUsers(@PathVariable Long id) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        Set<Long> existingUserIds = statusRepository.findByCampaign(campaign).stream()
-                .map(s -> s.getUser().getId())
-                .collect(Collectors.toSet());
-
-        return userRepository.findAll().stream()
-                .filter(u -> !existingUserIds.contains(u.getId()))
-                .map(u -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", u.getId());
-                    map.put("email", u.getEmail());
-                    map.put("firstName", u.getFirstName());
-                    map.put("lastName", u.getLastName());
-                    map.put("phone", u.getPhone());
-                    map.put("address", u.getAddress());
-                    return map;
-                }).collect(Collectors.toList());
-    }
-
-    @PostMapping("/api/campaigns/{id}/add-user")
-    @ResponseBody
-    public ResponseEntity<?> addUserToCampaign(@PathVariable Long id, @RequestBody Map<String, Long> body) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        User user = userRepository.findById(body.get("userId")).orElse(null);
-
-        if (campaign == null || user == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Campaign or user not found"));
-        }
-
-        if (!statusRepository.existsByCampaignAndUser(campaign, user)) {
-            UserNewsletterStatus status = new UserNewsletterStatus();
-            status.setCampaign(campaign);
-            status.setUser(user);
-            status.setNewsletter(campaign.getNewsletter());
-            status.setOpened(false);
-            status.setImpacted(false);
-            statusRepository.save(status);
-        }
-        return ResponseEntity.ok().body(Map.of("success", true));
-    }
-
-    @DeleteMapping("/api/campaigns/{id}/remove-user")
-    @ResponseBody
-    public ResponseEntity<?> removeUserFromCampaign(@PathVariable Long id, @RequestBody Map<String, Long> body) {
-        Long userId = body.get("userId");
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        User user = userRepository.findById(userId).orElse(null);
-
-        if (campaign == null || user == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Campaign or user not found"));
-        }
-
-        Optional<UserNewsletterStatus> status = statusRepository.findByCampaignAndUser(campaign, user);
-        if (status.isPresent()) {
-            statusRepository.delete(status.get());
-        }
-        return ResponseEntity.ok().body(Map.of("success", true));
-    }
-
-    @GetMapping("/api/campaigns/{id}/users-with-status")
-    @ResponseBody
-    public List<Map<String, Object>> getCampaignUsersWithStatus(@PathVariable Long id) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        List<UserNewsletterStatus> statuses = statusRepository.findByCampaign(campaign);
-        Set<Long> userIds = statuses.stream().map(s -> s.getUser().getId()).collect(Collectors.toSet());
-
-        return userRepository.findAll().stream().map(u -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", u.getId());
-            map.put("email", u.getEmail());
-            map.put("firstName", u.getFirstName());
-            map.put("lastName", u.getLastName());
-            map.put("inCampaign", userIds.contains(u.getId()));
-            map.put("opened", statuses.stream().filter(s -> s.getUser().getId().equals(u.getId())).findFirst()
-                    .map(UserNewsletterStatus::getOpened).orElse(false));
-            return map;
-        }).collect(Collectors.toList());
     }
 
     @PostMapping("/api/campaigns/{id}/retry")

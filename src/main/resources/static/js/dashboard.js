@@ -15,7 +15,7 @@ async function loadStats() {
         document.getElementById('totalUsers').textContent = stats.userCount || 0;
         document.getElementById('totalCampaigns').textContent = stats.campaignCount || 0;
         document.getElementById('totalSent').textContent = stats.sentCount || 0;
-        const openRate = stats.totalSent > 0 ? Math.round((stats.openedCount / stats.totalSent) * 100) : 0;
+        const openRate = stats.sentCount > 0 ? Math.round((stats.openedCount / stats.sentCount) * 100) : 0;
         document.getElementById('totalOpened').textContent = `${openRate}%`;
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -24,7 +24,7 @@ async function loadStats() {
 
 async function loadCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading...</span></div>';
+    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
     try {
         const res = await fetch(`${API_BASE}/api/campaigns`);
         const campaigns = await res.json();
@@ -47,7 +47,7 @@ async function loadCampaigns() {
         });
 
         if (!filteredCampaigns || filteredCampaigns.length === 0) {
-            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> <span th:text="#{dashboard.no_campaigns}">No campaigns yet</span></div>';
+            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns yet</div>';
             return;
         }
 
@@ -57,16 +57,16 @@ async function loadCampaigns() {
 
             let scheduleInfo = '';
             if (c.scheduledStart) {
-                scheduleInfo = `<div class="campaign-schedule">📅 <span th:text="#{campaign.scheduled}">Scheduled</span>: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
+                scheduleInfo = `<div class="campaign-schedule">📅 Scheduled: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
             }
             if (c.startDate) {
-                scheduleInfo += `<div class="campaign-start">🚀 <span th:text="#{campaign.start_date}">Start</span>: ${new Date(c.startDate).toLocaleString()}</div>`;
+                scheduleInfo += `<div class="campaign-start">🚀 Start: ${new Date(c.startDate).toLocaleString()}</div>`;
             }
             if (c.endDate) {
-                scheduleInfo += `<div class="campaign-end">🏁 <span th:text="#{campaign.end_date}">End</span>: ${new Date(c.endDate).toLocaleString()}</div>`;
+                scheduleInfo += `<div class="campaign-end">🏁 End: ${new Date(c.endDate).toLocaleString()}</div>`;
             }
             if (c.campaignStatus === 'scheduled') {
-                scheduleInfo = `<div class="campaign-waiting">⏰ <span th:text="#{campaign.not_started}">Not started yet</span></div>` + scheduleInfo;
+                scheduleInfo = `<div class="campaign-waiting">⏰ Not started yet</div>` + scheduleInfo;
             }
 
             return `
@@ -77,20 +77,20 @@ async function loadCampaigns() {
                 </div>
                 ${scheduleInfo}
                 <div class="campaign-stats">
-                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label"><span th:text="#{campaign.sent}">Sent</span></div></div>
-                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label"><span th:text="#{campaign.opened}">Opened</span></div></div>
-                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label"><span th:text="#{campaign.rate}">Rate</span></div></div>
+                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">Sent</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">Opened</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
                 </div>
                 <div class="campaign-actions">
-                    <a href="/campaign/${c.id}" class="btn-view">📊 <span th:text="#{campaign.details_btn}">Details</span></a>
-                    <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 <span th:text="#{campaign.view_newsletter}">View Newsletter</span></a>
-                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 <span th:text="#{campaign.delete_btn}">Delete</span></button>
+                    <a href="/campaign/${c.id}" class="btn-view">📊 Details</a>
+                    <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 View Newsletter</a>
+                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 Delete</button>
                 </div>
             </div>
         `}).join('');
     } catch (error) {
         console.error('Error loading campaigns:', error);
-        grid.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> <span th:text="#{dashboard.error}">Error loading campaigns</span></div>';
+        grid.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> Error loading campaigns</div>';
     }
 }
 

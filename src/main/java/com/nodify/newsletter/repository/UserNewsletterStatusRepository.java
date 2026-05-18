@@ -1,6 +1,7 @@
 package com.nodify.newsletter.repository;
 
 import com.nodify.newsletter.model.Campaign;
+import com.nodify.newsletter.model.Newsletter;
 import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
 import org.springframework.data.domain.Page;
@@ -38,4 +39,13 @@ public interface UserNewsletterStatusRepository extends JpaRepository<UserNewsle
 
     @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.sentAt IS NOT NULL")
     long countSent();
+
+    @Query("SELECT s FROM UserNewsletterStatus s WHERE s.campaign = :campaign AND s.sentAt IS NULL")
+    List<UserNewsletterStatus> findByCampaignAndSentAtIsNull(@Param("campaign") Campaign campaign);
+
+    @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.newsletter = :newsletter")
+    long countByNewsletter(@Param("newsletter") Newsletter newsletter);
+
+    @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.newsletter = :newsletter AND s.opened = true")
+    long countOpenedByNewsletter(@Param("newsletter") Newsletter newsletter);
 }

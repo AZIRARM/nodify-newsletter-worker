@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{newsletter.manage_users_title}">Manage Users - Newsletter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/newsletter-users.css">
+</head>
+
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <input type="hidden" id="newsletterId" th:value="${newsletter.id}" />
+
+    <div class="container">
+        <a th:href="@{/newsletters}" class="back-btn"><i class="fas fa-arrow-left"></i> <span
+                th:text="#{newsletter.back_to_newsletters}">Back to Newsletters</span></a>
+
+        <div class="header">
+            <h1><i class="fas fa-users"></i> <span th:text="#{newsletter.manage_users}">Manage Subscribers</span></h1>
+            <p><span th:text="#{newsletter.newsletter_label}">Newsletter</span>: <span
+                    th:text="${newsletter.title}">-</span></p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('current')"><span
+                    th:text="#{newsletter.current_users}">Subscribers</span></button>
+            <button class="tab" onclick="showTab('available')"><span th:text="#{newsletter.available_users}">Available
+                    Users</span></button>
+            <button class="tab" onclick="showTab('add')"><span th:text="#{newsletter.add_new_user}">Add New
+                    User</span></button>
+            <button class="tab" onclick="showTab('import')"><span th:text="#{newsletter.import_json}">Import
+                    JSON</span></button>
+        </div>
+
+        <!-- Current Users (Subscribers) -->
+        <div id="currentPanel" class="panel active">
+            <div class="search-box">
+                <input type="text" id="currentSearch" th:placeholder="#{newsletter.search_placeholder}">
+                <button onclick="loadCurrentUsers()"><i class="fas fa-search"></i> <span
+                        th:text="#{newsletter.search}">Search</span></button>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th th:text="#{newsletter.email}">Email</th>
+                        <th th:text="#{newsletter.name_header}">Name</th>
+                        <th th:text="#{newsletter.phone}">Phone</th>
+                        <th th:text="#{newsletter.address}">Address</th>
+                        <th th:text="#{newsletter.action}">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="currentUsersBody">
+                    <tr>
+                        <td colspan="5" class="loading" th:text="#{newsletter.loading}">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="currentPagination" class="pagination"></div>
+        </div>
+
+        <!-- Available Users -->
+        <div id="availablePanel" class="panel">
+            <div class="search-box">
+                <input type="text" id="availableSearch" th:placeholder="#{newsletter.search_placeholder}">
+                <button onclick="loadAvailableUsers()"><i class="fas fa-search"></i> <span
+                        th:text="#{newsletter.search}">Search</span></button>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th th:text="#{newsletter.email}">Email</th>
+                        <th th:text="#{newsletter.name_header}">Name</th>
+                        <th th:text="#{newsletter.phone}">Phone</th>
+                        <th th:text="#{newsletter.address}">Address</th>
+                        <th th:text="#{newsletter.action}">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="availableUsersBody">
+                    <tr>
+                        <td colspan="5" class="loading" th:text="#{newsletter.loading}">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add New User -->
+        <div id="addPanel" class="panel">
+            <h3 th:text="#{newsletter.create_new_user}">Create New User</h3>
+            <input type="text" id="newEmail" th:placeholder="#{newsletter.email_placeholder}">
+            <input type="text" id="newFirstName" th:placeholder="#{newsletter.first_name_placeholder}">
+            <input type="text" id="newLastName" th:placeholder="#{newsletter.last_name_placeholder}">
+            <input type="text" id="newPhone" th:placeholder="#{newsletter.phone_placeholder}">
+            <input type="text" id="newAddress" th:placeholder="#{newsletter.address_placeholder}">
+            <button onclick="createAndAddUser()"><span th:text="#{newsletter.create_and_add}">Create & Add to
+                    Newsletter</span></button>
+        </div>
+
+        <!-- Import JSON -->
+        <div id="importPanel" class="panel">
+            <h3 th:text="#{newsletter.import_users_title}">Import Users from JSON</h3>
+            <p th:text="#{newsletter.json_format}">JSON format: [{"email":"...", "firstName":"...", "lastName":"...",
+                "phone":"...", "address":"..."}]</p>
+            <textarea id="jsonImport" rows="10" th:placeholder="#{newsletter.json_placeholder}"></textarea>
+            <button onclick="importUsers()"><span th:text="#{newsletter.import_button}">Import & Add to
+                    Newsletter</span></button>
+        </div>
+    </div>
+
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3 th:text="#{newsletter.user_details}">User Details</h3>
+            <div id="modalContent"></div>
+            <div class="modal-buttons">
+                <button onclick="closeModal()"><span th:text="#{newsletter.close}">Close</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/newsletter-users.js"></script>
+</body>
+
+</html>

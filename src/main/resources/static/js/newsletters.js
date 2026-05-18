@@ -20,7 +20,6 @@ function renderNewsletters(newsletters) {
         grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No newsletters found</div>';
         return;
     }
-
     grid.innerHTML = newsletters.map(n => {
         let campaignsInfo = '';
         if (n.campaignCount > 0) {
@@ -28,28 +27,30 @@ function renderNewsletters(newsletters) {
         }
 
         return `
-        <div class="newsletter-card">
-            <div class="newsletter-header">
-                <div>
-                    <div class="newsletter-title">📰 ${escapeHtml(n.title)}</div>
-                    <div class="newsletter-code">${escapeHtml(n.code)}</div>
-                </div>
-            </div>
-            <div class="newsletter-info">
-                <div class="newsletter-subject"><i class="fas fa-tag"></i> ${escapeHtml(n.subject || 'No subject')}</div>
-                <div class="newsletter-dates">
-                    <i class="fas fa-calendar-plus"></i> Created: ${formatDate(n.createdAt)}
-                </div>
-            </div>
-            ${campaignsInfo}
-            <div class="newsletter-actions">
-                <a href="/newsletter/${n.id}" class="btn-view" target="_blank"><i class="fas fa-eye"></i> View</a>
-                <button class="btn-delete" onclick="deleteNewsletter(${n.id})" ${n.campaignCount > 0 ? 'disabled' : ''}>
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+    <div class="newsletter-card">
+        <div class="newsletter-header">
+            <div>
+                <div class="newsletter-title">📰 ${escapeHtml(n.title)}</div>
+                <div class="newsletter-code">${escapeHtml(n.code)}</div>
             </div>
         </div>
-    `}).join('');
+        <div class="newsletter-info">
+            <div class="newsletter-subject"><i class="fas fa-tag"></i> ${escapeHtml(n.subject || 'No subject')}</div>
+            <div class="newsletter-dates">
+                <i class="fas fa-calendar-plus"></i> Created: ${formatDate(n.createdAt)}
+            </div>
+        </div>
+        ${campaignsInfo}
+        <div class="newsletter-actions">
+            <a href="/newsletter/${n.id}" class="btn-view" target="_blank"><i class="fas fa-eye"></i> View</a>
+            <a href="/newsletters/${n.id}/manage-users" class="btn-users"><i class="fas fa-users"></i> Users</a>
+            <button class="btn-delete" onclick="deleteNewsletter(${n.id})" ${n.campaignCount > 0 ? 'disabled' : ''}>
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+    `;
+    }).join('');
 }
 
 function searchNewsletters() {

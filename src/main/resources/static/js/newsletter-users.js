@@ -1,13 +1,13 @@
-const campaignId = parseInt(document.getElementById('campaignId').value);
+const newsletterId = parseInt(document.getElementById('newsletterId').value);
 let currentPage = 1;
 const pageSize = 20;
 let totalUsers = 0;
 
-console.log('Campaign ID:', campaignId);
+console.log('Newsletter ID:', newsletterId);
 
 async function loadCurrentUsers() {
     try {
-        const response = await fetch(`/api/campaigns/${campaignId}/users?page=${currentPage}&size=${pageSize}`);
+        const response = await fetch(`/newsletters/${newsletterId}/subscribers?page=${currentPage}&size=${pageSize}`);
         if (!response.ok) throw new Error('API error');
         const data = await response.json();
         totalUsers = data.total;
@@ -15,14 +15,14 @@ async function loadCurrentUsers() {
         renderPagination();
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('currentUsersBody').innerHTML = '<tr><td colspan="6" class="error">Error loading users</td></tr>';
+        document.getElementById('currentUsersBody').innerHTML = '<table><td colspan="5" class="error">Error loading subscribers</td></tr>';
     }
 }
 
 function renderCurrentUsers(users) {
     const tbody = document.getElementById('currentUsersBody');
     if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty">No users in this campaign</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No subscribers in this newsletter</td></tr>';
         return;
     }
     tbody.innerHTML = '';
@@ -32,13 +32,11 @@ function renderCurrentUsers(users) {
         row.insertCell(1).innerHTML = escapeHtml((u.firstName || '') + ' ' + (u.lastName || ''));
         row.insertCell(2).innerHTML = escapeHtml(u.phone || '');
         row.insertCell(3).innerHTML = escapeHtml(u.address || '');
-        row.insertCell(4).className = u.opened ? 'status-open' : 'status-not-open';
-        row.insertCell(4).innerHTML = u.opened ? '✓ Opened' : (u.sentAt ? 'Sent' : 'Pending');
-        const actionCell = row.insertCell(5);
+        const actionCell = row.insertCell(4);
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-btn';
         removeBtn.innerHTML = 'Remove';
-        removeBtn.onclick = function () { removeUserFromCampaign(u.id); };
+        removeBtn.onclick = function () { removeUserFromNewsletter(u.id); };
         actionCell.appendChild(removeBtn);
     });
 }
@@ -63,24 +61,9 @@ function goToPage(page) {
     loadCurrentUsers();
 }
 
-async function removeUserFromCampaign(userId) {
-    if (!confirm('Remove this user from the campaign?')) return;
-    try {
-        await fetch(`/api/campaigns/${campaignId}/remove-user`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userId })
-        });
-        loadCurrentUsers();
-        loadAvailableUsers();
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
 async function loadAvailableUsers() {
     try {
-        const response = await fetch(`/api/campaigns/${campaignId}/available-users`);
+        const response = await fetch(`/newsletters/${newsletterId}/available-users`);
         const users = await response.json();
         renderAvailableUsers(users);
     } catch (error) {
@@ -105,15 +88,30 @@ function renderAvailableUsers(users) {
         const addBtn = document.createElement('button');
         addBtn.className = 'add-btn';
         addBtn.innerHTML = 'Add';
-        addBtn.onclick = function () { addUserToCampaign(u.id); };
+        addBtn.onclick = function () { addUserToNewsletter(u.id); };
         actionCell.appendChild(addBtn);
     });
 }
 
-async function addUserToCampaign(userId) {
+async function addUserToNewsletter(userId) {
     try {
-        await fetch(`/api/campaigns/${campaignId}/add-user`, {
+        await fetch(`/newsletters/${newsletterId}/add-user`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userId })
+        });
+        loadCurrentUsers();
+        loadAvailableUsers();
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+async function removeUserFromNewsletter(userId) {
+    if (!confirm('Remove this user from the newsletter?')) return;
+    try {
+        await fetch(`/newsletters/${newsletterId}/remove-user`, {
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId })
         });
@@ -143,7 +141,7 @@ async function createAndAddUser() {
             body: JSON.stringify(data)
         });
         const result = await res.json();
-        await addUserToCampaign(result.id);
+        await addUserToNewsletter(result.id);
         document.getElementById('newEmail').value = '';
         document.getElementById('newFirstName').value = '';
         document.getElementById('newLastName').value = '';
@@ -159,16 +157,44 @@ async function importUsers() {
     const jsonText = document.getElementById('jsonImport').value;
     try {
         const users = JSON.parse(jsonText);
-        await fetch('/users/api/import', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(users)
-        });
+
+        for (const user of users) {
+            const createRes = await fetch('/users/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone || '',
+                    address: user.address || ''
+                })
+            });
+
+            if (createRes.ok) {
+                const newUser = await createRes.json();
+                await addUserToNewsletter(newUser.id);
+            } else {
+                const error = await createRes.json();
+                console.error('Error creating user:', error);
+                if (error.error === 'Email already exists') {
+                    const existingUsersRes = await fetch('/users/api/list');
+                    const existingUsers = await existingUsersRes.json();
+                    const existingUser = existingUsers.find(u => u.email === user.email);
+                    if (existingUser) {
+                        await addUserToNewsletter(existingUser.id);
+                    }
+                }
+            }
+        }
+
+        loadCurrentUsers();
         loadAvailableUsers();
         alert('Users imported successfully');
         document.getElementById('jsonImport').value = '';
     } catch (e) {
-        alert('Invalid JSON format');
+        console.error('Error:', e);
+        alert('Invalid JSON format or import error');
     }
 }
 
@@ -207,6 +233,6 @@ function closeModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM loaded, campaignId:', campaignId);
+    console.log('DOM loaded, newsletterId:', newsletterId);
     loadCurrentUsers();
 });
