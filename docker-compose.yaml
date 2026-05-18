@@ -1,18 +1,19 @@
-version: '3.8'
-
 services:
   newsletter:
     build: .
     ports:
-      - "80:80"
+      - "${APP_PORT:-7880}:8080"
     environment:
       - NODIFY_API_URL=${NODIFY_API_URL:-https://nodify-api.azirar.ovh}
-      - NODIFY_API_SECRET=${NODIFY_API_SECRET:-}
       - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
       - MAIL_PORT=${MAIL_PORT:-587}
       - MAIL_USERNAME=${MAIL_USERNAME:-}
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
-      - TRACKING_BASE_URL=${TRACKING_BASE_URL:-http://localhost}
-    volumes:
-      - ./data:/app/data
+      - TRACKING_BASE_URL=${TRACKING_BASE_URL:-http://localhost:7880}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-}
+      - DB_HOST=${DB_HOST:-localhost}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-nodify-newsletter}
+      - DB_USERNAME=${DB_USERNAME:-nodify-newsletter}
+      - DB_PASSWORD=${DB_PASSWORD:-nodify-newsletter}
     restart: unless-stopped
