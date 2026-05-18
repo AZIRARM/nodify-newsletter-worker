@@ -6,6 +6,7 @@ import com.nodify.newsletter.model.Campaign;
 import com.nodify.newsletter.model.Newsletter;
 import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
+import com.nodify.newsletter.model.UserNewsletterSubscription;
 import com.nodify.newsletter.repository.CampaignRepository;
 import com.nodify.newsletter.repository.NewsletterRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -66,8 +68,8 @@ public class WebhookController {
         String scheduledStartStr = payload.getClientPayload().getScheduledStart();
         String startDateStr = payload.getClientPayload().getStartDate();
         String endDateStr = payload.getClientPayload().getEndDate();
+        List<String> emails = payload.getClientPayload().getEmails();
 
-        // newsletterCode et contentCode sont obligatoires
         if (newsletterCode == null || newsletterCode.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "newsletterCode is required"));
         }
@@ -78,12 +80,29 @@ public class WebhookController {
         String title = payload.getClientPayload().getTitle();
         String subject = payload.getClientPayload().getSubject();
 
-        // Récupérer ou créer la newsletter
         Newsletter newsletter = newsletterService.findOrCreateByCode(newsletterCode);
         NodifyContent content = nodifyClient.fetchContent(contentCode, title, subject);
         newsletter = newsletterService.updateFromNodifyContent(newsletter, content);
 
-        // Si campaignCode est présent, créer ou mettre à jour la campagne
+        if (emails != null && !emails.isEmpty()) {
+            for (String email : emails) {
+                User user = userRepository.findByEmail(email).orElse(null);
+                if (user == null) {
+                    user = new User();
+                    user.setEmail(email);
+                    user.setCreatedAt(LocalDateTime.now());
+                    user = userRepository.save(user);
+                }
+                if (!subscriptionRepository.existsByNewsletterAndUser(newsletter, user)) {
+                    UserNewsletterSubscription subscription = new UserNewsletterSubscription();
+                    subscription.setNewsletter(newsletter);
+                    subscription.setUser(user);
+                    subscription.setSubscribedAt(LocalDateTime.now());
+                    subscriptionRepository.save(subscription);
+                }
+            }
+        }
+
         if (campaignCode != null && !campaignCode.isEmpty()) {
             Campaign campaign = campaignService.findOrCreateByCode(campaignCode);
             campaign.setNewsletter(newsletter);
@@ -104,7 +123,6 @@ public class WebhookController {
                     return ResponseEntity.badRequest().body(Map.of("error", "Invalid endDate format"));
                 }
             }
-
             if (scheduledStartStr != null && !scheduledStartStr.isEmpty()) {
                 try {
                     campaign.setScheduledStart(LocalDateTime.parse(scheduledStartStr));
@@ -126,7 +144,6 @@ public class WebhookController {
                     "newsletterCode", newsletter.getNewsletterCode()));
         }
 
-        // Pas de campagne, juste la newsletter
         return ResponseEntity.ok().body(Map.of(
                 "newsletterId", newsletter.getId(),
                 "newsletterCode", newsletter.getNewsletterCode()));
@@ -176,5 +193,50 @@ public class WebhookController {
         subscriptionRepository.deleteByNewsletterAndUser(newsletterObj, user);
 
         return ResponseEntity.ok().body(Map.of("success", true, "message", "Unsubscribed successfully"));
+    }
+
+    @GetMapping("/subscribe")
+    @ResponseBody
+    public ResponseEntity<?> subscribe(@RequestParam String email, @RequestParam String newsletter) {
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        if (newsletter == null || newsletter.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Newsletter ID or code is required"));
+        }
+
+        User user = null;
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            user = new User();
+            user.setEmail(email);
+            user.setCreatedAt(LocalDateTime.now());
+            user = userRepository.save(user);
+        } else {
+            user = userOpt.get();
+        }
+
+        Newsletter newsletterObj = null;
+        try {
+            Long id = Long.parseLong(newsletter);
+            newsletterObj = newsletterRepository.findById(id).orElse(null);
+        } catch (NumberFormatException e) {
+            newsletterObj = newsletterRepository.findByNewsletterCode(newsletter).orElse(null);
+        }
+
+        if (newsletterObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Newsletter not found"));
+        }
+
+        if (!subscriptionRepository.existsByNewsletterAndUser(newsletterObj, user)) {
+            UserNewsletterSubscription subscription = new UserNewsletterSubscription();
+            subscription.setNewsletter(newsletterObj);
+            subscription.setUser(user);
+            subscription.setSubscribedAt(LocalDateTime.now());
+            subscriptionRepository.save(subscription);
+        }
+
+        return ResponseEntity.ok().body(Map.of("success", true, "message", "Subscribed successfully"));
     }
 }
