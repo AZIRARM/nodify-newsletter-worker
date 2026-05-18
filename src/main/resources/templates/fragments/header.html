@@ -9,18 +9,46 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 8px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .logo {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-switch a {
+            text-decoration: none;
+            color: #64748b;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
     <div th:fragment="header">
-        <div class="container">
-            <div class="lang-switch">
-                <a href="?lang=fr">🇫🇷 Français</a> |
-                <a href="?lang=en">🇬🇧 English</a> |
-                <a href="?lang=es">🇪🇸 Español</a> |
-                <a href="?lang=de">🇩🇪 Deutsch</a> |
-                <a href="?lang=pt">🇵🇹 Português</a>
-            </div>
+        <div class="header-container">
+            <img src="/images/logo.png" alt="Nodify" class="logo" th:src="@{/images/logo.png}">
 
             <div class="nav-links">
                 <a href="/" class="nav-link" th:classappend="${currentPage == 'dashboard' ? 'active' : ''}">
@@ -29,13 +57,21 @@
                 <a href="/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
                     <i class="fas fa-list"></i> <span th:text="#{campaigns.title}">Campaigns</span>
                 </a>
-                <a href="/newsletters" id="navNewsletters" class="nav-link">
-                    <i class="fas fa-newspaper"></i>
-                    <span th:text="#{newsletters.title}">Newsletters</span>
+                <a href="/newsletters" class="nav-link"
+                    th:classappend="${currentPage == 'newsletters' ? 'active' : ''}">
+                    <i class="fas fa-newspaper"></i> <span th:text="#{newsletters.title}">Newsletters</span>
                 </a>
                 <a href="/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
                     <i class="fas fa-users"></i> <span th:text="#{dashboard.users}">Users</span>
                 </a>
+            </div>
+
+            <div class="lang-switch">
+                <a href="?lang=fr">🇫🇷</a>
+                <a href="?lang=en">🇬🇧</a>
+                <a href="?lang=es">🇪🇸</a>
+                <a href="?lang=de">🇩🇪</a>
+                <a href="?lang=pt">🇵🇹</a>
             </div>
         </div>
     </div>
