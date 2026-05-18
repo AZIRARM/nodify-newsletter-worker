@@ -54,27 +54,27 @@
                     <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                     <div class="stat-info">
                         <h3 id="openRate">0%</h3>
-                        <p th:text="#{campaign.rate}">Rate</p>
+                        <p th:text="#{campaign.open_rate}">Rate</p>
                     </div>
                 </div>
             </div>
             <div class="detail-actions">
                 <button class="schedule-btn" onclick="openScheduleModalFromDetail()">
-                    <i class="fas fa-calendar-alt"></i> Schedule
+                    <i class="fas fa-calendar-alt"></i> <span th:text="#{campaign.schedule_btn}">Schedule</span>
                 </button>
                 <button class="retry-btn" onclick="retryCampaign()">
-                    <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry}">Retry</span>
+                    <i class="fas fa-sync-alt"></i> <span th:text="#{campaign.retry_button}">Retry</span>
                 </button>
             </div>
         </div>
 
         <div class="users-table">
-            <h3><i class="fas fa-users"></i> <span th:text="#{campaign.users}">User Status</span></h3>
+            <h3><i class="fas fa-users"></i> <span th:text="#{campaign.user_status}">User Status</span></h3>
             <table id="usersTable">
                 <thead>
                     <tr>
                         <th th:text="#{campaign.email}">Email</th>
-                        <th th:text="#{campaign.name}">Name</th>
+                        <th th:text="#{campaign.name_header}">Name</th>
                         <th th:text="#{campaign.sent_at}">Sent At</th>
                         <th th:text="#{campaign.opened_at}">Opened At</th>
                         <th th:text="#{dashboard.status}">Status</th>
@@ -94,37 +94,39 @@
     <div id="scheduleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-alt"></i> Schedule Campaign</h3>
+                <h3><i class="fas fa-calendar-alt"></i> <span th:text="#{schedule.title}">Schedule Campaign</span></h3>
                 <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
             </div>
             <form id="scheduleForm">
                 <div class="form-group">
-                    <label>Start Date</label>
+                    <label th:text="#{campaign.start_date}">Start Date</label>
                     <input type="datetime-local" id="scheduleStartDate">
-                    <small>Campaign start date (optional)</small>
+                    <small th:text="#{campaign.start_help}">Campaign start date (optional)</small>
                 </div>
                 <div class="form-group">
-                    <label>End Date</label>
+                    <label th:text="#{campaign.end_date}">End Date</label>
                     <input type="datetime-local" id="scheduleEndDate">
-                    <small>Campaign end date (optional)</small>
+                    <small th:text="#{campaign.end_help}">Campaign end date (optional)</small>
                 </div>
                 <div class="form-group">
-                    <label>Scheduled Start</label>
+                    <label th:text="#{schedule.scheduled_start}">Scheduled Start</label>
                     <input type="datetime-local" id="scheduleScheduledStart">
-                    <small>Leave empty to start immediately</small>
+                    <small th:text="#{schedule.start_help}">Leave empty to start immediately</small>
                 </div>
                 <div class="form-group">
-                    <label>Auto-retry interval (minutes)</label>
+                    <label th:text="#{schedule.retry_interval}">Auto-retry interval (minutes)</label>
                     <input type="number" id="scheduleRetryInterval" min="0" step="5">
-                    <small>0 = no auto-retry</small>
+                    <small th:text="#{schedule.retry_help}">0 = no auto-retry</small>
                 </div>
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="scheduleActive" value="true">
-                    <label>Active (enable auto-retry)</label>
+                    <label th:text="#{schedule.active}">Active (enable auto-retry)</label>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
-                    <button type="submit" class="btn-submit">Save Settings</button>
+                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()"><span
+                            th:text="#{common.cancel}">Cancel</span></button>
+                    <button type="submit" class="btn-submit"><span th:text="#{common.save}">Save
+                            Settings</span></button>
                 </div>
             </form>
         </div>

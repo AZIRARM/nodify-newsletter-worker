@@ -44,12 +44,12 @@
                     th:text="#{campaigns.new}">New Campaign</span></button>
         </div>
         <div class="filter-group">
-            <label>Campaign Status</label>
+            <label th:text="#{campaigns.filter_campaign_status}">Campaign Status</label>
             <select id="campaignStatusFilter">
-                <option value="ALL">All</option>
-                <option value="active">Active</option>
-                <option value="scheduled">Not started</option>
-                <option value="inactive">Expired</option>
+                <option value="ALL" th:text="#{campaigns.all}">All</option>
+                <option value="active" th:text="#{campaigns.active}">Active</option>
+                <option value="scheduled" th:text="#{campaigns.not_started}">Not started</option>
+                <option value="inactive" th:text="#{campaigns.inactive}">Expired</option>
             </select>
         </div>
         <br />
@@ -63,25 +63,24 @@
     <div id="newCampaignModal" class="modal">
         <div class="modal-content">
             <h3 th:text="#{campaigns.new_campaign}">New Campaign</h3>
-            <input type="text" id="campaignName" placeholder="Campaign name"
-                th:placeholder="#{campaigns.name_placeholder}">
+            <input type="text" id="campaignName" th:placeholder="#{campaigns.name_placeholder}">
             <select id="newsletterId">
                 <option value="">-- Select Newsletter --</option>
             </select>
             <div class="form-group">
-                <label>Start Date</label>
+                <label th:text="#{campaign.start_date}">Start Date</label>
                 <input type="datetime-local" id="newCampaignStartDate">
-                <small>Campaign start date (optional)</small>
+                <small th:text="#{campaign.start_help}">Campaign start date (optional)</small>
             </div>
             <div class="form-group">
-                <label>End Date</label>
+                <label th:text="#{campaign.end_date}">End Date</label>
                 <input type="datetime-local" id="newCampaignEndDate">
-                <small>Campaign end date (optional)</small>
+                <small th:text="#{campaign.end_help}">Campaign end date (optional)</small>
             </div>
             <div class="form-group">
-                <label>Scheduled Start</label>
+                <label th:text="#{schedule.scheduled_start}">Scheduled Start</label>
                 <input type="datetime-local" id="newCampaignScheduledStart">
-                <small>Leave empty to start immediately</small>
+                <small th:text="#{schedule.start_help}">Leave empty to start immediately</small>
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeNewCampaignModal()"
@@ -95,37 +94,39 @@
     <div id="scheduleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-alt"></i> Schedule Campaign</h3>
+                <h3><i class="fas fa-calendar-alt"></i> <span th:text="#{schedule.title}">Schedule Campaign</span></h3>
                 <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
             </div>
             <form id="scheduleForm">
                 <div class="form-group">
-                    <label>Start Date</label>
+                    <label th:text="#{campaign.start_date}">Start Date</label>
                     <input type="datetime-local" id="scheduleStartDate">
-                    <small>Campaign start date (optional)</small>
+                    <small th:text="#{campaign.start_help}">Campaign start date (optional)</small>
                 </div>
                 <div class="form-group">
-                    <label>End Date</label>
+                    <label th:text="#{campaign.end_date}">End Date</label>
                     <input type="datetime-local" id="scheduleEndDate">
-                    <small>Campaign end date (optional)</small>
+                    <small th:text="#{campaign.end_help}">Campaign end date (optional)</small>
                 </div>
                 <div class="form-group">
-                    <label>Scheduled Start</label>
+                    <label th:text="#{schedule.scheduled_start}">Scheduled Start</label>
                     <input type="datetime-local" id="scheduleScheduledStart">
-                    <small>Leave empty to start immediately</small>
+                    <small th:text="#{schedule.start_help}">Leave empty to start immediately</small>
                 </div>
                 <div class="form-group">
-                    <label>Auto-retry interval (minutes)</label>
+                    <label th:text="#{schedule.retry_interval}">Auto-retry interval (minutes)</label>
                     <input type="number" id="scheduleRetryInterval" min="0" step="5">
-                    <small>0 = no auto-retry</small>
+                    <small th:text="#{schedule.retry_help}">0 = no auto-retry</small>
                 </div>
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="scheduleActive" value="true">
-                    <label>Active (enable auto-retry)</label>
+                    <label th:text="#{schedule.active}">Active (enable auto-retry)</label>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
-                    <button type="submit" class="btn-submit">Save Settings</button>
+                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()"><span
+                            th:text="#{common.cancel}">Cancel</span></button>
+                    <button type="submit" class="btn-submit"><span th:text="#{common.save}">Save
+                            Settings</span></button>
                 </div>
             </form>
         </div>
