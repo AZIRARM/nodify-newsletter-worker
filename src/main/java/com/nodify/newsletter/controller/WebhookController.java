@@ -4,9 +4,13 @@ import com.nodify.newsletter.dto.NodifyContent;
 import com.nodify.newsletter.dto.WebhookPayload;
 import com.nodify.newsletter.model.Campaign;
 import com.nodify.newsletter.model.Newsletter;
+import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
 import com.nodify.newsletter.repository.CampaignRepository;
+import com.nodify.newsletter.repository.NewsletterRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
+import com.nodify.newsletter.repository.UserNewsletterSubscriptionRepository;
+import com.nodify.newsletter.repository.UserRepository;
 import com.nodify.newsletter.service.CampaignService;
 import com.nodify.newsletter.service.NewsletterService;
 import com.nodify.newsletter.service.NodifyClient;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/webhook")
@@ -38,6 +43,12 @@ public class WebhookController {
     private SchedulerService schedulerService;
     @Autowired
     private UserNewsletterStatusRepository statusRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserNewsletterSubscriptionRepository subscriptionRepository;
+    @Autowired
+    private NewsletterRepository newsletterRepository;
 
     @PostMapping("/trigger")
     public ResponseEntity<?> triggerNewsletter(@RequestBody WebhookPayload payload,
@@ -130,5 +141,40 @@ public class WebhookController {
             status.setImpacted(true);
             statusRepository.save(status);
         }
+    }
+
+    @GetMapping("/unsubscribe")
+    @ResponseBody
+    public ResponseEntity<?> unsubscribe(@RequestParam String email, @RequestParam String newsletter) {
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        if (newsletter == null || newsletter.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Newsletter ID or code is required"));
+        }
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+        }
+
+        User user = userOpt.get();
+        Newsletter newsletterObj = null;
+
+        try {
+            Long id = Long.parseLong(newsletter);
+            newsletterObj = newsletterRepository.findById(id).orElse(null);
+        } catch (NumberFormatException e) {
+            newsletterObj = newsletterRepository.findByNewsletterCode(newsletter).orElse(null);
+        }
+
+        if (newsletterObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Newsletter not found"));
+        }
+
+        subscriptionRepository.deleteByNewsletterAndUser(newsletterObj, user);
+
+        return ResponseEntity.ok().body(Map.of("success", true, "message", "Unsubscribed successfully"));
     }
 }
