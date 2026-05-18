@@ -37,6 +37,10 @@ public interface UserNewsletterStatusRepository extends JpaRepository<UserNewsle
 
     Optional<UserNewsletterStatus> findByCampaignAndUser(Campaign campaign, User user);
 
+    Page<UserNewsletterStatus> findByNewsletter(Newsletter newsletter, Pageable pageable);
+
+    List<UserNewsletterStatus> findByNewsletter(Newsletter newsletter);
+
     @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.sentAt IS NOT NULL")
     long countSent();
 
