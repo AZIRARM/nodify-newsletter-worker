@@ -52,4 +52,6 @@ public interface UserNewsletterStatusRepository extends JpaRepository<UserNewsle
 
     @Query("SELECT COUNT(s) FROM UserNewsletterStatus s WHERE s.newsletter = :newsletter AND s.opened = true")
     long countOpenedByNewsletter(@Param("newsletter") Newsletter newsletter);
+
+    List<UserNewsletterStatus> findByUser(User user);
 }

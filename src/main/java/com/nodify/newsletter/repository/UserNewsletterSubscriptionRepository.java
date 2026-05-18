@@ -19,4 +19,9 @@ public interface UserNewsletterSubscriptionRepository extends JpaRepository<User
     Optional<UserNewsletterSubscription> findByNewsletterAndUser(Newsletter newsletter, User user);
 
     void deleteByNewsletterAndUser(Newsletter newsletter, User user);
+
+    void deleteByNewsletter(Newsletter newsletter);
+
+    void deleteByUser(User user);
+
 }

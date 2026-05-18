@@ -84,7 +84,13 @@ public class NewsletterController {
             return Map.of("error", "Cannot delete: newsletter is used by " + campaignCount + " campaign(s)");
         }
 
+        subscriptionRepository.deleteByNewsletter(newsletter);
+
+        List<UserNewsletterStatus> statuses = statusRepository.findByNewsletter(newsletter);
+        statusRepository.deleteAll(statuses);
+
         newsletterRepository.deleteById(id);
+
         return Map.of("success", true);
     }
 

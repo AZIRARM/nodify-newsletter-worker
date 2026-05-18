@@ -1,6 +1,9 @@
 package com.nodify.newsletter.controller;
 
 import com.nodify.newsletter.model.User;
+import com.nodify.newsletter.model.UserNewsletterStatus;
+import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
+import com.nodify.newsletter.repository.UserNewsletterSubscriptionRepository;
 import com.nodify.newsletter.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,12 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserNewsletterStatusRepository statusRepository;
+
+    @Autowired
+    private UserNewsletterSubscriptionRepository subscriptionRepository;
 
     @GetMapping
     public String usersPage(Model model) {
@@ -76,7 +85,16 @@ public class UserController {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+
+        User user = userRepository.findById(id).get();
+
+        subscriptionRepository.deleteByUser(user);
+
+        List<UserNewsletterStatus> statuses = statusRepository.findByUser(user);
+        statusRepository.deleteAll(statuses);
+
         userRepository.deleteById(id);
+
         return ResponseEntity.ok().body(Map.of("success", true));
     }
 

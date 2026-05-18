@@ -105,9 +105,15 @@ public class DashboardController {
         if (campaign == null) {
             return ResponseEntity.notFound().build();
         }
+
+        campaign.setNewsletter(null);
+        campaignRepository.save(campaign);
+
         List<UserNewsletterStatus> statuses = statusRepository.findByCampaign(campaign);
         statusRepository.deleteAll(statuses);
+
         campaignRepository.delete(campaign);
+
         return ResponseEntity.ok().body(Map.of("success", true));
     }
 
