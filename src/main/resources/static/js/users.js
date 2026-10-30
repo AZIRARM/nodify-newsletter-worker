@@ -1,7 +1,7 @@
 let allUsers = [];
 
 async function loadUsers() {
-    const res = await fetch('/users/api/list');
+    const res = await fetch('/api/users/list');
     allUsers = await res.json();
     renderUsers(allUsers);
 }
@@ -73,10 +73,10 @@ async function saveUser() {
         address: document.getElementById('userAddress').value
     };
 
-    let url = '/users/api/create';
+    let url = '/api/users/create';
     let method = 'POST';
     if (id) {
-        url = `/users/api/${id}`;
+        url = `/api/users/${id}`;
         method = 'PUT';
     }
 
@@ -97,12 +97,12 @@ async function saveUser() {
 
 async function deleteUser(id) {
     if (!confirm(t('users.delete_confirm','Delete this user? This will also remove them from all campaigns.'))) return;
-    await fetch(`/users/api/${id}`, { method: 'DELETE' });
+    await fetch(`/api/users/${id}`, { method: 'DELETE' });
     loadUsers();
 }
 
 async function exportUsers() {
-    const res = await fetch('/users/api/export');
+    const res = await fetch('/api/users/export');
     const users = await res.json();
     const blob = new Blob([JSON.stringify(users, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -119,7 +119,7 @@ async function importUsers(input) {
     const text = await file.text();
     try {
         const users = JSON.parse(text);
-        const res = await fetch('/users/api/import', {
+        const res = await fetch('/api/users/import', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(users)

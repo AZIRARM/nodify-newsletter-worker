@@ -7,7 +7,7 @@ console.log('Newsletter ID:', newsletterId);
 
 async function loadCurrentUsers() {
     try {
-        const response = await fetch(`/newsletters/${newsletterId}/subscribers?page=${currentPage}&size=${pageSize}`);
+        const response = await fetch(`/api/newsletters/${newsletterId}/subscribers?page=${currentPage}&size=${pageSize}`);
         if (!response.ok) throw new Error('API error');
         const data = await response.json();
         totalUsers = data.total;
@@ -15,7 +15,7 @@ async function loadCurrentUsers() {
         renderPagination();
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('currentUsersBody').innerHTML = `<table><td colspan="5" class="error">${t('common.error','Error loading subscribers')}</td></tr>`;
+        document.getElementById('currentUsersBody').innerHTML = `<tr><td colspan="5" class="error">${t('common.error','Error loading subscribers')}</td></tr>`;
     }
 }
 
@@ -63,7 +63,7 @@ function goToPage(page) {
 
 async function loadAvailableUsers() {
     try {
-        const response = await fetch(`/newsletters/${newsletterId}/available-users`);
+        const response = await fetch(`/api/newsletters/${newsletterId}/available-users`);
         const users = await response.json();
         renderAvailableUsers(users);
     } catch (error) {
@@ -95,7 +95,7 @@ function renderAvailableUsers(users) {
 
 async function addUserToNewsletter(userId) {
     try {
-        await fetch(`/newsletters/${newsletterId}/add-user`, {
+        await fetch(`/api/newsletters/${newsletterId}/add-user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId })
@@ -110,7 +110,7 @@ async function addUserToNewsletter(userId) {
 async function removeUserFromNewsletter(userId) {
     if (!confirm(t('newsletter.remove_confirm','Remove this user from the newsletter?'))) return;
     try {
-        await fetch(`/newsletters/${newsletterId}/remove-user`, {
+        await fetch(`/api/newsletters/${newsletterId}/remove-user`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: userId })
@@ -135,7 +135,7 @@ async function createAndAddUser() {
         return;
     }
     try {
-        const res = await fetch('/users/api/create', {
+        const res = await fetch('/api/users/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -159,7 +159,7 @@ async function importUsers() {
         const users = JSON.parse(jsonText);
 
         for (const user of users) {
-            const createRes = await fetch('/users/api/create', {
+            const createRes = await fetch('/api/users/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -178,7 +178,7 @@ async function importUsers() {
                 const error = await createRes.json();
                 console.error('Error creating user:', error);
                 if (error.error === 'Email already exists') {
-                    const existingUsersRes = await fetch('/users/api/list');
+                    const existingUsersRes = await fetch('/api/users/list');
                     const existingUsers = await existingUsersRes.json();
                     const existingUser = existingUsers.find(u => u.email === user.email);
                     if (existingUser) {

@@ -54,14 +54,14 @@
                 <a href="/" class="nav-link" th:classappend="${currentPage == 'dashboard' ? 'active' : ''}">
                     <i class="fas fa-tachometer-alt"></i> <span th:text="#{dashboard.title}">Dashboard</span>
                 </a>
-                <a href="/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
+                <a href="/api/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
                     <i class="fas fa-list"></i> <span th:text="#{campaigns.title}">Campaigns</span>
                 </a>
-                <a href="/newsletters" class="nav-link"
+                <a href="/api/newsletters" class="nav-link"
                     th:classappend="${currentPage == 'newsletters' ? 'active' : ''}">
                     <i class="fas fa-newspaper"></i> <span th:text="#{newsletters.title}">Newsletters</span>
                 </a>
-                <a href="/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
+                <a href="/api/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
                     <i class="fas fa-users"></i> <span th:text="#{dashboard.users}">Users</span>
                 </a>
             </div>

@@ -23,12 +23,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/newsletters")
+@RequestMapping("/api/newsletters")
 public class NewsletterController {
 
     @Autowired
@@ -46,12 +45,23 @@ public class NewsletterController {
     @Autowired
     private UserNewsletterSubscriptionRepository subscriptionRepository;
 
+    // ==================== PAGES HTML ====================
+
     @GetMapping
     public String newslettersPage(Model model) {
         return "newsletters";
     }
 
-    @GetMapping("/api/list")
+    @GetMapping("/{id}/manage-users")
+    public String newsletterUsersPage(@PathVariable Long id, Model model) {
+        Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
+        model.addAttribute("newsletter", newsletter);
+        return "newsletter-users";
+    }
+
+    // ==================== API REST ====================
+
+    @GetMapping("/list")
     @ResponseBody
     public List<Map<String, Object>> getNewsletters() {
         return newsletterRepository.findAll().stream().map(n -> {
@@ -71,7 +81,40 @@ public class NewsletterController {
         }).collect(Collectors.toList());
     }
 
-    @DeleteMapping("/api/{id}")
+    @PostMapping
+    @ResponseBody
+    public ResponseEntity<?> createNewsletter(@RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        String title = body.get("title");
+        String subject = body.get("subject");
+        String contentHtml = body.get("contentHtml");
+
+        if (code == null || code.isBlank() || title == null || title.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Code and title are required"));
+        }
+
+        if (newsletterRepository.findByNewsletterCode(code).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Newsletter code already exists"));
+        }
+
+        Newsletter newsletter = new Newsletter();
+        newsletter.setNewsletterCode(code);
+        newsletter.setTitle(title);
+        newsletter.setSubject(subject);
+        newsletter.setContentHtml(contentHtml);
+        newsletter.setCreatedAt(LocalDateTime.now());
+        newsletter.setUpdatedAt(LocalDateTime.now());
+
+        Newsletter saved = newsletterRepository.save(newsletter);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", saved.getId());
+        result.put("code", saved.getNewsletterCode());
+        result.put("title", saved.getTitle());
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{id}")
     @ResponseBody
     public Map<String, Object> deleteNewsletter(@PathVariable Long id) {
         Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
@@ -92,13 +135,6 @@ public class NewsletterController {
         newsletterRepository.deleteById(id);
 
         return Map.of("success", true);
-    }
-
-    @GetMapping("/{id}/manage-users")
-    public String newsletterUsersPage(@PathVariable Long id, Model model) {
-        Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
-        model.addAttribute("newsletter", newsletter);
-        return "newsletter-users";
     }
 
     @GetMapping("/{id}/users")
@@ -217,5 +253,4 @@ public class NewsletterController {
         subscriptionRepository.deleteByNewsletterAndUser(newsletter, user);
         return ResponseEntity.ok().body(Map.of("success", true));
     }
-
 }

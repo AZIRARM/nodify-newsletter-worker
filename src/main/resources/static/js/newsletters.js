@@ -5,7 +5,7 @@ async function loadNewsletters() {
     grid.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${t('common.loading','Loading...')}</div>`;
 
     try {
-        const response = await fetch('/newsletters/api/list');
+        const response = await fetch('/api/newsletters/list');
         allNewsletters = await response.json();
         renderNewsletters(allNewsletters);
     } catch (error) {
@@ -42,8 +42,8 @@ function renderNewsletters(newsletters) {
         </div>
         ${campaignsInfo}
         <div class="newsletter-actions">
-            <a href="/newsletter/${n.id}" class="btn-view"><i class="fas fa-eye"></i> ${t('common.details','View')}</a>
-            <a href="/newsletters/${n.id}/manage-users" class="btn-users"><i class="fas fa-users"></i> ${t('newsletter.users','Users')}</a>
+            <a href="/api/campaigns/newsletter/${n.id}" class="btn-view"><i class="fas fa-eye"></i> ${t('common.details','View')}</a>
+            <a href="/api/newsletters/${n.id}/manage-users" class="btn-users"><i class="fas fa-users"></i> ${t('newsletter.users','Users')}</a>
             <button class="btn-delete" onclick="deleteNewsletter(${n.id})" ${n.campaignCount > 0 ? 'disabled' : ''}>
                 <i class="fas fa-trash"></i> ${t('common.delete','Delete')}
             </button>
@@ -76,7 +76,7 @@ async function deleteNewsletter(id) {
     if (!confirm(t('newsletters.delete_confirm','Delete this newsletter?'))) return;
 
     try {
-        const response = await fetch(`/newsletters/api/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/newsletters/${id}`, { method: 'DELETE' });
         const result = await response.json();
         if (result.success) {
             loadNewsletters();

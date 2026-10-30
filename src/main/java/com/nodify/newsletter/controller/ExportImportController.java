@@ -18,7 +18,7 @@ public class ExportImportController {
     @Autowired
     private ExportImportService exportImportService;
 
-    @GetMapping("/export")
+    @GetMapping("/api/export")
     public ResponseEntity<InputStreamResource> export() throws IOException {
         byte[] data = exportImportService.exportAll();
         HttpHeaders headers = new HttpHeaders();
@@ -29,7 +29,7 @@ public class ExportImportController {
                 .body(new InputStreamResource(new ByteArrayInputStream(data)));
     }
 
-    @PostMapping("/import")
+    @PostMapping("/api/import")
     public String importData(@RequestParam("file") MultipartFile file) throws IOException {
         exportImportService.importAll(file.getInputStream());
         return "redirect:/";

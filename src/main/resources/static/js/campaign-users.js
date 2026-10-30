@@ -3,8 +3,6 @@ let currentPage = 1;
 const pageSize = 20;
 let totalUsers = 0;
 
-console.log('Campaign ID:', campaignId);
-
 async function loadCurrentUsers() {
     try {
         const response = await fetch(`/api/campaigns/${campaignId}/users?page=${currentPage}&size=${pageSize}`);
@@ -15,7 +13,8 @@ async function loadCurrentUsers() {
         renderPagination();
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('currentUsersBody').innerHTML = `<tr><td colspan="6" class="error">${t('common.error','Error loading users')}</td></tr>`;
+        document.getElementById('currentUsersBody').innerHTML =
+            `<tr><td colspan="6" class="error">${t('common.error','Error loading users')}</td></tr>`;
     }
 }
 
@@ -36,12 +35,7 @@ function renderCurrentUsers(users) {
         row.insertCell(4).innerHTML = u.opened
             ? `✓ ${t('campaign.status_open','Opened')}`
             : (u.sentAt ? t('campaign.sent','Sent') : t('status.pending','Pending'));
-        const actionCell = row.insertCell(5);
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.innerHTML = t('common.remove','Remove');
-        removeBtn.onclick = function () { removeUserFromCampaign(u.id); };
-        actionCell.appendChild(removeBtn);
+        row.insertCell(5).innerHTML = '-';
     });
 }
 
@@ -65,115 +59,6 @@ function goToPage(page) {
     loadCurrentUsers();
 }
 
-async function removeUserFromCampaign(userId) {
-    if (!confirm(t('campaign.remove_confirm','Remove this user from the campaign?'))) return;
-    try {
-        await fetch(`/api/campaigns/${campaignId}/remove-user`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userId })
-        });
-        loadCurrentUsers();
-        loadAvailableUsers();
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-async function loadAvailableUsers() {
-    try {
-        const response = await fetch(`/api/campaigns/${campaignId}/available-users`);
-        const users = await response.json();
-        renderAvailableUsers(users);
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-function renderAvailableUsers(users) {
-    const tbody = document.getElementById('availableUsersBody');
-    if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="empty">${t('campaign.no_available','No available users')}</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = '';
-    users.forEach(u => {
-        const row = tbody.insertRow();
-        row.insertCell(0).innerHTML = escapeHtml(u.email);
-        row.insertCell(1).innerHTML = escapeHtml((u.firstName || '') + ' ' + (u.lastName || ''));
-        row.insertCell(2).innerHTML = escapeHtml(u.phone || '');
-        row.insertCell(3).innerHTML = escapeHtml(u.address || '');
-        const actionCell = row.insertCell(4);
-        const addBtn = document.createElement('button');
-        addBtn.className = 'add-btn';
-        addBtn.innerHTML = t('common.add','Add');
-        addBtn.onclick = function () { addUserToCampaign(u.id); };
-        actionCell.appendChild(addBtn);
-    });
-}
-
-async function addUserToCampaign(userId) {
-    try {
-        await fetch(`/api/campaigns/${campaignId}/add-user`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userId })
-        });
-        loadCurrentUsers();
-        loadAvailableUsers();
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-async function createAndAddUser() {
-    const data = {
-        email: document.getElementById('newEmail').value,
-        firstName: document.getElementById('newFirstName').value,
-        lastName: document.getElementById('newLastName').value,
-        phone: document.getElementById('newPhone').value,
-        address: document.getElementById('newAddress').value
-    };
-    if (!data.email) {
-        alert(t('users.email_required','Email is required'));
-        return;
-    }
-    try {
-        const res = await fetch('/users/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        await addUserToCampaign(result.id);
-        document.getElementById('newEmail').value = '';
-        document.getElementById('newFirstName').value = '';
-        document.getElementById('newLastName').value = '';
-        document.getElementById('newPhone').value = '';
-        document.getElementById('newAddress').value = '';
-        loadAvailableUsers();
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-async function importUsers() {
-    const jsonText = document.getElementById('jsonImport').value;
-    try {
-        const users = JSON.parse(jsonText);
-        await fetch('/users/api/import', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(users)
-        });
-        loadAvailableUsers();
-        alert(t('campaign.import_success','Users imported successfully'));
-        document.getElementById('jsonImport').value = '';
-    } catch (e) {
-        alert(t('campaign.import_error','Invalid JSON format'));
-    }
-}
-
 function showTab(tabName) {
     const panels = document.querySelectorAll('.panel');
     const tabs = document.querySelectorAll('.tab');
@@ -184,16 +69,14 @@ function showTab(tabName) {
         document.getElementById('currentPanel').classList.add('active');
         tabs[0].classList.add('active');
         loadCurrentUsers();
-    } else if (tabName === 'available') {
-        document.getElementById('availablePanel').classList.add('active');
-        tabs[1].classList.add('active');
-        loadAvailableUsers();
-    } else if (tabName === 'add') {
-        document.getElementById('addPanel').classList.add('active');
-        tabs[2].classList.add('active');
-    } else if (tabName === 'import') {
-        document.getElementById('importPanel').classList.add('active');
-        tabs[3].classList.add('active');
+    } else {
+        // Onglets non supportés par le backend (available/add/import)
+        const panel = document.getElementById(tabName + 'Panel');
+        if (panel) {
+            panel.classList.add('active');
+            const tabIndex = ['current','available','add','import'].indexOf(tabName);
+            if (tabIndex >= 0 && tabs[tabIndex]) tabs[tabIndex].classList.add('active');
+        }
     }
 }
 
@@ -209,6 +92,5 @@ function closeModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM loaded, campaignId:', campaignId);
     loadCurrentUsers();
 });

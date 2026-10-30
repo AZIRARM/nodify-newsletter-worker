@@ -58,9 +58,9 @@
             <h2><i class="fas fa-list"></i> <span th:text="#{dashboard.recent_campaigns}">Recent Campaigns</span></h2>
             <div style="display: flex; gap: 15px;">
                 <div class="export-import">
-                    <a href="/export" class="btn-export"><i class="fas fa-download"></i> <span
+                    <a href="/api/export" class="btn-export"><i class="fas fa-download"></i> <span
                             th:text="#{dashboard.export}">Export JSON</span></a>
-                    <form action="/import" method="post" enctype="multipart/form-data" class="import-form">
+                    <form action="/api/import" method="post" enctype="multipart/form-data" class="import-form">
                         <label for="importFile" class="btn-import"><i class="fas fa-upload"></i> <span
                                 th:text="#{dashboard.import}">Import JSON</span></label>
                         <input type="file" id="importFile" name="file" accept=".json" style="display: none;"

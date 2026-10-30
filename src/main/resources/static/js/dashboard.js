@@ -10,7 +10,7 @@ async function loadData() {
 
 async function loadStats() {
     try {
-        const res = await fetch(`${API_BASE}/api/stats`);
+        const res = await fetch(`${API_BASE}/api/dashboard/stats`);
         const stats = await res.json();
         document.getElementById('totalUsers').textContent = stats.userCount || 0;
         document.getElementById('totalCampaigns').textContent = stats.campaignCount || 0;
@@ -30,7 +30,7 @@ async function loadCampaigns() {
 
     grid.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${loadingMsg}</div>`;
     try {
-        const res = await fetch(`${API_BASE}/api/campaigns`);
+        const res = await fetch(`${API_BASE}/api/campaigns/list`);
         const campaigns = await res.json();
 
         const now = new Date();
@@ -56,8 +56,7 @@ async function loadCampaigns() {
         }
 
         grid.innerHTML = filteredCampaigns.map(c => {
-            const newsletterLink = c.newsletterId ? `/newsletter/${c.newsletterId}` : '#';
-            const newsletterTitle = c.newsletterTitle || 'Newsletter';
+            const newsletterLink = c.newsletterId ? `/api/campaigns/newsletter/${c.newsletterId}` : '#';
 
             let scheduleInfo = '';
             if (c.scheduledStart) {
@@ -86,7 +85,7 @@ async function loadCampaigns() {
                     <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
                 </div>
                 <div class="campaign-actions">
-                    <a href="/campaign/${c.id}" class="btn-view">📊 Details</a>
+                    <a href="/api/campaigns/${c.id}/detail" class="btn-view">📊 Details</a>
                     <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 View Newsletter</a>
                     <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 Delete</button>
                 </div>

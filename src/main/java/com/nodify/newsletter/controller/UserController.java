@@ -11,12 +11,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     @Autowired
@@ -28,26 +30,30 @@ public class UserController {
     @Autowired
     private UserNewsletterSubscriptionRepository subscriptionRepository;
 
+    // ==================== PAGE HTML ====================
+
     @GetMapping
     public String usersPage(Model model) {
         model.addAttribute("users", userRepository.findAll());
         return "users";
     }
 
-    @GetMapping("/api/list")
+    // ==================== API REST ====================
+
+    @GetMapping("/list")
     @ResponseBody
     public List<User> getUsers() {
         return userRepository.findAll();
     }
 
-    @GetMapping("/api/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
     public ResponseEntity<User> getUser(@PathVariable Long id) {
         Optional<User> user = userRepository.findById(id);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/api/create")
+    @PostMapping("/create")
     @ResponseBody
     public ResponseEntity<?> createUser(@RequestBody Map<String, String> body) {
         if (userRepository.findByEmail(body.get("email")).isPresent()) {
@@ -63,7 +69,7 @@ public class UserController {
         return ResponseEntity.ok(userRepository.save(user));
     }
 
-    @PutMapping("/api/{id}")
+    @PutMapping("/{id}")
     @ResponseBody
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, String> body) {
         Optional<User> existing = userRepository.findById(id);
@@ -79,7 +85,7 @@ public class UserController {
         return ResponseEntity.ok(userRepository.save(user));
     }
 
-    @DeleteMapping("/api/{id}")
+    @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
@@ -98,7 +104,7 @@ public class UserController {
         return ResponseEntity.ok().body(Map.of("success", true));
     }
 
-    @PostMapping("/api/import")
+    @PostMapping("/import")
     @ResponseBody
     public ResponseEntity<?> importUsers(@RequestBody List<Map<String, String>> users) {
         for (Map<String, String> u : users) {
@@ -116,9 +122,27 @@ public class UserController {
         return ResponseEntity.ok().body(Map.of("imported", users.size()));
     }
 
-    @GetMapping("/api/export")
+    @GetMapping("/export")
     @ResponseBody
     public List<User> exportUsers() {
         return userRepository.findAll();
     }
+
+     @GetMapping("/recent")
+    @ResponseBody
+    public List<Map<String, Object>> getRecentUsers(@RequestParam(defaultValue = "5") int limit) {
+        return userRepository.findAll().stream()
+                .limit(limit)
+                .map(u -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", u.getId());
+                    map.put("email", u.getEmail());
+                    map.put("firstName", u.getFirstName());
+                    map.put("lastName", u.getLastName());
+                    map.put("createdAt", u.getCreatedAt());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
 }

@@ -1,4 +1,6 @@
-const campaignId = window.location.pathname.split('/')[2];
+const pathParts = window.location.pathname.split('/');
+// URL = /api/campaigns/{id}/detail → id est à l'index 3
+const campaignId = pathParts[3];
 let currentPage = 1;
 const pageSize = 20;
 let totalUsers = 0;
@@ -73,10 +75,6 @@ function retryCampaign() {
             }
         })
         .catch(error => console.error('Error:', error));
-}
-
-function formatDate(date) {
-    return date ? new Date(date).toLocaleString() : '-';
 }
 
 function escapeHtml(text) {
