@@ -1,5 +1,14 @@
 const API_BASE = window.location.origin;
 
+// Fallback i18n : si une fonction globale t() existe (injectée par Thymeleaf), on l'utilise,
+// sinon on retourne la valeur par défaut.
+window.t = window.t || function (key, fallback) {
+    if (window.i18nMessages && window.i18nMessages[key]) {
+        return window.i18nMessages[key];
+    }
+    return fallback !== undefined ? fallback : key;
+};
+
 let allCampaigns = [];
 
 async function loadData() {
@@ -46,75 +55,82 @@ function applyFilters() {
 
 function renderCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    const now = new Date();
+    if (!grid) return;
 
-    const statusFilter = document.getElementById('statusFilter')?.value || 'ALL';
-    const campaignStatusFilter = document.getElementById('campaignStatusFilter')?.value || 'ALL';
-    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    try {
+        const now = new Date();
 
-    let filtered = allCampaigns.filter(c => {
-        // filtre expiration
-        if (c.endDate && new Date(c.endDate) < now) return false;
-        // filtre statut technique
-        if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
-        // filtre statut campagne calculé
-        if (campaignStatusFilter !== 'ALL' && c.campaignStatus !== campaignStatusFilter) return false;
-        // filtre nom
-        if (searchTerm && !c.name.toLowerCase().includes(searchTerm)) return false;
-        return true;
-    });
+        const statusFilter = document.getElementById('statusFilter')?.value || 'ALL';
+        const campaignStatusFilter = document.getElementById('campaignStatusFilter')?.value || 'ALL';
+        const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
 
-    filtered.sort((a, b) => {
-        const aStart = a.startDate ? new Date(a.startDate) : null;
-        const bStart = b.startDate ? new Date(b.startDate) : null;
-        const aIsActive = !aStart || aStart <= now;
-        const bIsActive = !bStart || bStart <= now;
-        if (aIsActive && !bIsActive) return -1;
-        if (!aIsActive && bIsActive) return 1;
-        return 0;
-    });
+        let filtered = allCampaigns.filter(c => {
+            // filtre statut technique
+            if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
+            // filtre statut campagne calculé (active / scheduled / inactive)
+            if (campaignStatusFilter !== 'ALL' && c.campaignStatus !== campaignStatusFilter) return false;
+            // filtre nom
+            if (searchTerm && !(c.name || '').toLowerCase().includes(searchTerm)) return false;
+            return true;
+        });
 
-    if (filtered.length === 0) {
-        grid.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${t('dashboard.empty_campaigns','No campaigns yet')}</div>`;
-        return;
+        filtered.sort((a, b) => {
+            const aStart = a.startDate ? new Date(a.startDate) : null;
+            const bStart = b.startDate ? new Date(b.startDate) : null;
+            const aIsActive = !aStart || aStart <= now;
+            const bIsActive = !bStart || bStart <= now;
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+            return 0;
+        });
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${t('dashboard.empty_campaigns','No campaigns yet')}</div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(c => {
+            const newsletterLink = c.newsletterId ? `/api/newsletters/${c.newsletterId}` : '#';
+            const statusLower = (c.status || 'draft').toLowerCase();
+
+            let scheduleInfo = '';
+            if (c.scheduledStart) {
+                scheduleInfo = `<div class="campaign-schedule">📅 ${t('dashboard.scheduled','Scheduled')}: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
+            }
+            if (c.startDate) {
+                scheduleInfo += `<div class="campaign-start">🚀 ${t('dashboard.start','Start')}: ${new Date(c.startDate).toLocaleString()}</div>`;
+            }
+            if (c.endDate) {
+                scheduleInfo += `<div class="campaign-end">🏁 ${t('dashboard.end','End')}: ${new Date(c.endDate).toLocaleString()}</div>`;
+            }
+            if (c.campaignStatus === 'scheduled') {
+                scheduleInfo = `<div class="campaign-waiting">⏰ ${t('campaigns.not_started','Not started yet')}</div>` + scheduleInfo;
+            }
+
+            return `
+            <div class="campaign-card">
+                <div class="campaign-header">
+                    <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
+                    <span class="status status-${statusLower}">${t('status.' + statusLower, c.status)}</span>
+                </div>
+                ${scheduleInfo}
+                <div class="campaign-stats">
+                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">${t('campaign.sent','Sent')}</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">${t('campaign.opened','Opened')}</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">${t('campaign.rate','Rate')}</div></div>
+                </div>
+                <div class="campaign-actions">
+                    <a href="/api/campaigns/${c.id}/detail" class="btn-view">📊 ${t('common.details','Details')}</a>
+                    <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 ${t('campaign.view_newsletter','View Newsletter')}</a>
+                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 ${t('common.delete','Delete')}</button>
+                </div>
+            </div>
+        `;
+        }).join('');
+    } catch (err) {
+        console.error('renderCampaigns error:', err);
+        grid.innerHTML = `<div class="empty"><i class="fas fa-exclamation-triangle"></i> Erreur de rendu : ${err.message}</div>`;
     }
-
-    grid.innerHTML = filtered.map(c => {
-        const newsletterLink = c.newsletterId ? `/api/campaigns/newsletter/${c.newsletterId}` : '#';
-
-        let scheduleInfo = '';
-        if (c.scheduledStart) {
-            scheduleInfo = `<div class="campaign-schedule">📅 ${t('dashboard.scheduled','Scheduled')}: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
-        }
-        if (c.startDate) {
-            scheduleInfo += `<div class="campaign-start">🚀 ${t('dashboard.start','Start')}: ${new Date(c.startDate).toLocaleString()}</div>`;
-        }
-        if (c.endDate) {
-            scheduleInfo += `<div class="campaign-end">🏁 ${t('dashboard.end','End')}: ${new Date(c.endDate).toLocaleString()}</div>`;
-        }
-        if (c.campaignStatus === 'scheduled') {
-            scheduleInfo = `<div class="campaign-waiting">⏰ ${t('campaigns.not_started','Not started yet')}</div>` + scheduleInfo;
-        }
-
-        return `
-        <div class="campaign-card">
-            <div class="campaign-header">
-                <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
-                <span class="status status-${c.status.toLowerCase()}">${t('status.' + c.status.toLowerCase(), c.status)}</span>
-            </div>
-            ${scheduleInfo}
-            <div class="campaign-stats">
-                <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">${t('campaign.sent','Sent')}</div></div>
-                <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">${t('campaign.opened','Opened')}</div></div>
-                <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">${t('campaign.rate','Rate')}</div></div>
-            </div>
-            <div class="campaign-actions">
-                <a href="/api/campaigns/${c.id}/detail" class="btn-view">📊 ${t('common.details','Details')}</a>
-                <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 ${t('campaign.view_newsletter','View Newsletter')}</a>
-                <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 ${t('common.delete','Delete')}</button>
-            </div>
-        </div>
-    `}).join('');
 }
 
 async function deleteCampaign(id) {

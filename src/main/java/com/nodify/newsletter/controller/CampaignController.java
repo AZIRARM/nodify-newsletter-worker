@@ -71,9 +71,18 @@ public class CampaignController {
             map.put("scheduledStart", c.getScheduledStart());
             map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
             map.put("active", c.getActive());
-            map.put("sentCount", 0);
-            map.put("openedCount", 0);
-            map.put("openRate", 0);
+
+            // ✅ Calcul réel des statistiques (même logique que /{id}/stats)
+            List<UserNewsletterStatus> statuses =
+                    statusRepository.findByCampaign(c, Pageable.unpaged()).getContent();
+            long sent = statuses.stream().filter(s -> s.getSentAt() != null).count();
+            long opened = statuses.stream().filter(s -> Boolean.TRUE.equals(s.getOpened())).count();
+            long openRate = sent > 0 ? Math.round((opened * 100.0) / sent) : 0;
+
+            map.put("sentCount", sent);
+            map.put("openedCount", opened);
+            map.put("openRate", openRate);
+
             map.put("newsletterId", c.getNewsletter() != null ? c.getNewsletter().getId() : null);
             map.put("newsletterTitle", c.getNewsletter() != null ? c.getNewsletter().getTitle() : null);
             return map;
@@ -178,6 +187,13 @@ public class CampaignController {
         if (campaign == null) {
             return ResponseEntity.notFound().build();
         }
+
+        // ✅ Supprimer d'abord les statuts liés (contrainte FK)
+        List<UserNewsletterStatus> statuses =
+                statusRepository.findByCampaign(campaign, Pageable.unpaged()).getContent();
+        statusRepository.deleteAll(statuses);
+
+        // ✅ Puis supprimer la campagne
         campaignRepository.delete(campaign);
         return ResponseEntity.ok(Map.of("success", true));
     }

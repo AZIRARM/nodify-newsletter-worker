@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -116,6 +117,7 @@ public class NewsletterController {
 
     @DeleteMapping("/{id}")
     @ResponseBody
+    @Transactional
     public Map<String, Object> deleteNewsletter(@PathVariable Long id) {
         Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
         if (newsletter == null) {

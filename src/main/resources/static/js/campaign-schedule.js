@@ -1,3 +1,12 @@
+// Fallback i18n : si une fonction globale t() existe (injectée par Thymeleaf), on l'utilise,
+// sinon on retourne la valeur par défaut.
+window.t = window.t || function (key, fallback) {
+    if (window.i18nMessages && window.i18nMessages[key]) {
+        return window.i18nMessages[key];
+    }
+    return fallback !== undefined ? fallback : key;
+};
+
 let currentScheduleCampaignId = null;
 
 function openScheduleModal(campaignId, startDate, endDate, scheduledStart, retryInterval, active) {

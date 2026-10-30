@@ -3,6 +3,15 @@ let currentPage = 1;
 const pageSize = 20;
 let totalUsers = 0;
 
+// Fallback i18n : si une fonction globale t() existe (injectée par Thymeleaf), on l'utilise,
+// sinon on retourne la valeur par défaut.
+window.t = window.t || function (key, fallback) {
+    if (window.i18nMessages && window.i18nMessages[key]) {
+        return window.i18nMessages[key];
+    }
+    return fallback !== undefined ? fallback : key;
+};
+
 async function loadCurrentUsers() {
     try {
         const response = await fetch(`/api/campaigns/${campaignId}/users?page=${currentPage}&size=${pageSize}`);
