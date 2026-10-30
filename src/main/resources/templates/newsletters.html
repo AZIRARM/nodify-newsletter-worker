@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <div class="container">
         <div class="header">
@@ -29,7 +29,7 @@
         </div>
 
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search by title or code...">
+            <input type="text" id="searchInput" th:placeholder="#{newsletters.search_placeholder}">
             <button onclick="searchNewsletters()"><i class="fas fa-search"></i> <span
                     th:text="#{campaigns.search}">Search</span></button>
         </div>
@@ -51,22 +51,21 @@
             <form id="newsletterForm">
                 <input type="hidden" id="newsletterId">
                 <div class="form-group">
-                    <label><span th:text="#{newsletter.code}">Code</span> *</label>
-                    <input type="text" id="newsletterCode" placeholder="NEWSLETTER-001">
-                    <small>Unique identifier for this newsletter</small>
+                    <label><span th:text="#{newsletter.code_label}">Code</span> *</label>
+                    <input type="text" id="newsletterCode" th:placeholder="#{newsletters.code_placeholder}">
+                    <small th:text="#{newsletters.code_help}">Unique identifier for this newsletter</small>
                 </div>
                 <div class="form-group">
-                    <label><span th:text="#{newsletter.title}">Title</span> *</label>
-                    <input type="text" id="newsletterTitle" placeholder="My Awesome Newsletter">
+                    <label><span th:text="#{newsletter.title_label}">Title</span> *</label>
+                    <input type="text" id="newsletterTitle" th:placeholder="#{newsletters.title_placeholder}">
                 </div>
                 <div class="form-group">
-                    <label><span th:text="#{newsletter.subject}">Subject</span></label>
-                    <input type="text" id="newsletterSubject" placeholder="Email subject line">
+                    <label><span th:text="#{newsletter.subject_label}">Subject</span></label>
+                    <input type="text" id="newsletterSubject" th:placeholder="#{newsletters.subject_placeholder}">
                 </div>
                 <div class="form-group">
-                    <label><span th:text="#{newsletter.content}">HTML Content</span></label>
-                    <textarea id="newsletterContent" rows="10"
-                        placeholder="<h1>Hello</h1><p>Welcome to our newsletter...</p>"></textarea>
+                    <label><span th:text="#{newsletter.content_label}">HTML Content</span></label>
+                    <textarea id="newsletterContent" rows="10" th:placeholder="#{newsletters.content_placeholder}"></textarea>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-cancel" onclick="closeNewsletterModal()"><span

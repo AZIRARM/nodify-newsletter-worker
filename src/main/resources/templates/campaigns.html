@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <div class="container">
         <div class="header">
@@ -34,7 +34,7 @@
             </div>
             <div class="filter-group">
                 <label th:text="#{campaigns.search}">Search</label>
-                <input type="text" id="searchInput" placeholder="Campaign name...">
+                <input type="text" id="searchInput" th:placeholder="#{campaigns.name_placeholder}">
             </div>
             <div class="filter-group">
                 <button onclick="applyFilters()"><i class="fas fa-filter"></i> <span

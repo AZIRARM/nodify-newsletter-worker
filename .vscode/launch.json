@@ -6,7 +6,7 @@
             "name": "NewsletterApplication",
             "request": "launch",
             "mainClass": "com.nodify.newsletter.NewsletterApplication",
-            "projectName": "newsletter-ssg",
+            "projectName": "newsletter",
             "envFile": "${workspaceFolder}/.env"
         },
         {

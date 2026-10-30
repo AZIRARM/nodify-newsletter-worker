@@ -2,7 +2,6 @@ package com.nodify.newsletter.controller;
 
 import com.nodify.newsletter.model.Campaign;
 import com.nodify.newsletter.model.Newsletter;
-import com.nodify.newsletter.model.User;
 import com.nodify.newsletter.model.UserNewsletterStatus;
 import com.nodify.newsletter.repository.CampaignRepository;
 import com.nodify.newsletter.repository.NewsletterRepository;
@@ -23,6 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping("/api/campaigns")
 public class CampaignController {
 
     @Autowired
@@ -36,52 +36,91 @@ public class CampaignController {
     @Autowired
     private NewsletterRepository newsletterRepository;
 
-    @GetMapping("/campaign/{id}")
+    // ==================== PAGES HTML ====================
+
+    @GetMapping
+    public String campaignsPage(Model model) {
+        return "campaigns";
+    }
+
+    @GetMapping("/{id}/detail")
     public String campaignDetail(@PathVariable Long id, Model model) {
         model.addAttribute("campaign", campaignRepository.findById(id).orElse(null));
         return "campaign-detail";
     }
 
-    @GetMapping("/campaign/{id}/schedule")
+    @GetMapping("/{id}/schedule-form")
     public String scheduleForm(@PathVariable Long id, Model model) {
         model.addAttribute("campaign", campaignRepository.findById(id).orElse(null));
         return "schedule-form";
     }
 
-    @PostMapping("/campaign/{id}/schedule")
-    public String updateSchedule(@PathVariable Long id,
-            @RequestParam(required = false) String scheduledStart,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) Integer retryIntervalMinutes,
-            @RequestParam(required = false) Boolean active) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        if (campaign != null) {
-            if (scheduledStart != null && !scheduledStart.isEmpty()) {
-                campaign.setScheduledStart(LocalDateTime.parse(scheduledStart));
-                campaign.setStatus("SCHEDULED");
-            }
-            if (startDate != null && !startDate.isEmpty()) {
-                campaign.setStartDate(LocalDateTime.parse(startDate));
-            }
-            if (endDate != null && !endDate.isEmpty()) {
-                campaign.setEndDate(LocalDateTime.parse(endDate));
-            }
-            if (retryIntervalMinutes != null) {
-                campaign.setRetryIntervalMinutes(retryIntervalMinutes);
-                if (retryIntervalMinutes > 0) {
-                    campaign.setRetryDateTime(LocalDateTime.now().plusMinutes(retryIntervalMinutes));
-                }
-            }
-            if (active != null) {
-                campaign.setActive(active);
-            }
-            campaignRepository.save(campaign);
-        }
-        return "redirect:/campaign/" + id;
+    // ==================== API REST ====================
+
+    @GetMapping("/list")
+    @ResponseBody
+    public List<Map<String, Object>> getCampaigns() {
+        return campaignRepository.findAll().stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("name", c.getName());
+            map.put("status", c.getStatus());
+            map.put("campaignStatus", computeCampaignStatus(c));
+            map.put("startDate", c.getStartDate());
+            map.put("endDate", c.getEndDate());
+            map.put("scheduledStart", c.getScheduledStart());
+            map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
+            map.put("active", c.getActive());
+
+            // ✅ Calcul réel des statistiques (même logique que /{id}/stats)
+            List<UserNewsletterStatus> statuses =
+                    statusRepository.findByCampaign(c, Pageable.unpaged()).getContent();
+            long sent = statuses.stream().filter(s -> s.getSentAt() != null).count();
+            long opened = statuses.stream().filter(s -> Boolean.TRUE.equals(s.getOpened())).count();
+            long openRate = sent > 0 ? Math.round((opened * 100.0) / sent) : 0;
+
+            map.put("sentCount", sent);
+            map.put("openedCount", opened);
+            map.put("openRate", openRate);
+
+            map.put("newsletterId", c.getNewsletter() != null ? c.getNewsletter().getId() : null);
+            map.put("newsletterTitle", c.getNewsletter() != null ? c.getNewsletter().getTitle() : null);
+            return map;
+        }).collect(Collectors.toList());
     }
 
-    @GetMapping("/api/campaigns/{id}/users")
+    @GetMapping("/{id}")
+    @ResponseBody
+    public Map<String, Object> getCampaign(@PathVariable Long id) {
+        Campaign c = campaignRepository.findById(id).orElse(null);
+        if (c == null) return Map.of();
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", c.getId());
+        map.put("name", c.getName());
+        map.put("status", c.getStatus());
+        map.put("startDate", c.getStartDate());
+        map.put("endDate", c.getEndDate());
+        map.put("scheduledStart", c.getScheduledStart());
+        map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
+        map.put("active", c.getActive());
+        return map;
+    }
+
+    @GetMapping("/{id}/stats")
+    @ResponseBody
+    public Map<String, Object> getCampaignStats(@PathVariable Long id) {
+        Campaign campaign = campaignRepository.findById(id).orElse(null);
+        if (campaign == null) return Map.of("sentCount", 0, "openedCount", 0);
+        List<UserNewsletterStatus> statuses = statusRepository.findByCampaign(campaign, Pageable.unpaged()).getContent();
+        long sent = statuses.stream().filter(s -> s.getSentAt() != null).count();
+        long opened = statuses.stream().filter(s -> Boolean.TRUE.equals(s.getOpened())).count();
+        Map<String, Object> result = new HashMap<>();
+        result.put("sentCount", sent);
+        result.put("openedCount", opened);
+        return result;
+    }
+
+    @GetMapping("/{id}/users")
     @ResponseBody
     public Map<String, Object> getCampaignUsers(@PathVariable Long id,
             @RequestParam(defaultValue = "1") int page,
@@ -108,29 +147,7 @@ public class CampaignController {
         return result;
     }
 
-    @PostMapping("/api/campaigns/{id}/retry")
-    @ResponseBody
-    public ResponseEntity<?> retryCampaign(@PathVariable Long id) {
-        System.out.println("Retry endpoint called for campaign: " + id);
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        if (campaign == null) {
-            return ResponseEntity.notFound().build();
-        }
-        schedulerService.retryCampaign(campaign);
-        return ResponseEntity.ok().body(Map.of("success", true));
-    }
-
-    @GetMapping("/newsletter/{id}")
-    public String viewNewsletter(@PathVariable Long id, Model model) {
-        Newsletter newsletter = newsletterRepository.findById(id).orElse(null);
-        if (newsletter == null) {
-            return "redirect:/campaigns";
-        }
-        model.addAttribute("newsletter", newsletter);
-        return "newsletter-view";
-    }
-
-    @PostMapping("/api/campaigns")
+    @PostMapping
     @ResponseBody
     public void createCampaign(@RequestBody Map<String, Object> data) {
         String name = (String) data.get("name");
@@ -163,4 +180,72 @@ public class CampaignController {
         campaignRepository.save(campaign);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteCampaign(@PathVariable Long id) {
+        Campaign campaign = campaignRepository.findById(id).orElse(null);
+        if (campaign == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // ✅ Supprimer d'abord les statuts liés (contrainte FK)
+        List<UserNewsletterStatus> statuses =
+                statusRepository.findByCampaign(campaign, Pageable.unpaged()).getContent();
+        statusRepository.deleteAll(statuses);
+
+        // ✅ Puis supprimer la campagne
+        campaignRepository.delete(campaign);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @PostMapping("/{id}/schedule")
+    public String updateSchedule(@PathVariable Long id,
+            @RequestParam(required = false) String scheduledStart,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Integer retryIntervalMinutes,
+            @RequestParam(required = false) Boolean active) {
+        Campaign campaign = campaignRepository.findById(id).orElse(null);
+        if (campaign != null) {
+            if (scheduledStart != null && !scheduledStart.isEmpty()) {
+                campaign.setScheduledStart(LocalDateTime.parse(scheduledStart));
+                campaign.setStatus("SCHEDULED");
+            }
+            if (startDate != null && !startDate.isEmpty()) {
+                campaign.setStartDate(LocalDateTime.parse(startDate));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                campaign.setEndDate(LocalDateTime.parse(endDate));
+            }
+            if (retryIntervalMinutes != null) {
+                campaign.setRetryIntervalMinutes(retryIntervalMinutes);
+                if (retryIntervalMinutes > 0) {
+                    campaign.setRetryDateTime(LocalDateTime.now().plusMinutes(retryIntervalMinutes));
+                }
+            }
+            if (active != null) {
+                campaign.setActive(active);
+            }
+            campaignRepository.save(campaign);
+        }
+        return "redirect:/api/campaigns/" + id + "/detail";
+    }
+
+    @PostMapping("/{id}/retry")
+    @ResponseBody
+    public ResponseEntity<?> retryCampaign(@PathVariable Long id) {
+        Campaign campaign = campaignRepository.findById(id).orElse(null);
+        if (campaign == null) {
+            return ResponseEntity.notFound().build();
+        }
+        schedulerService.retryCampaign(campaign);
+        return ResponseEntity.ok().body(Map.of("success", true));
+    }
+
+    private String computeCampaignStatus(Campaign c) {
+        LocalDateTime now = LocalDateTime.now();
+        if (c.getStartDate() != null && c.getStartDate().isAfter(now)) return "scheduled";
+        if (c.getEndDate() != null && c.getEndDate().isBefore(now)) return "inactive";
+        return "active";
+    }
 }

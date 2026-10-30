@@ -1,7 +1,7 @@
 let allUsers = [];
 
 async function loadUsers() {
-    const res = await fetch('/users/api/list');
+    const res = await fetch('/api/users/list');
     allUsers = await res.json();
     renderUsers(allUsers);
 }
@@ -9,7 +9,7 @@ async function loadUsers() {
 function renderUsers(users) {
     const tbody = document.getElementById('usersTableBody');
     if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="loading">No users found</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="8" class="loading">${t('users.no_users','No users found')}</td></tr>`;
         return;
     }
     tbody.innerHTML = users.map(u => `
@@ -22,8 +22,8 @@ function renderUsers(users) {
             <td>${escapeHtml(u.address || '')}</td>
             <td>${new Date(u.createdAt).toLocaleDateString()}</td>
             <td>
-                <button class="btn-edit" onclick="editUser(${u.id})">Edit</button>
-                <button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>
+                <button class="btn-edit" onclick="editUser(${u.id})">${t('common.edit','Edit')}</button>
+                <button class="btn-delete" onclick="deleteUser(${u.id})">${t('common.delete','Delete')}</button>
             </td>
         </tr>
     `).join('');
@@ -40,7 +40,7 @@ function searchUsers() {
 }
 
 function openUserModal() {
-    document.getElementById('modalTitle').innerText = 'Add User';
+    document.getElementById('modalTitle').innerText = t('users.add_user_title','Add User');
     document.getElementById('userId').value = '';
     document.getElementById('userEmail').value = '';
     document.getElementById('userFirstName').value = '';
@@ -53,7 +53,7 @@ function openUserModal() {
 function editUser(id) {
     const user = allUsers.find(u => u.id === id);
     if (!user) return;
-    document.getElementById('modalTitle').innerText = 'Edit User';
+    document.getElementById('modalTitle').innerText = t('users.edit_user','Edit User');
     document.getElementById('userId').value = user.id;
     document.getElementById('userEmail').value = user.email;
     document.getElementById('userFirstName').value = user.firstName || '';
@@ -73,10 +73,10 @@ async function saveUser() {
         address: document.getElementById('userAddress').value
     };
 
-    let url = '/users/api/create';
+    let url = '/api/users/create';
     let method = 'POST';
     if (id) {
-        url = `/users/api/${id}`;
+        url = `/api/users/${id}`;
         method = 'PUT';
     }
 
@@ -91,18 +91,18 @@ async function saveUser() {
         loadUsers();
     } else {
         const error = await res.json();
-        alert(error.error || 'Error saving user');
+        alert(error.error || t('users.error_saving','Error saving user'));
     }
 }
 
 async function deleteUser(id) {
-    if (!confirm('Delete this user? This will also remove them from all campaigns.')) return;
-    await fetch(`/users/api/${id}`, { method: 'DELETE' });
+    if (!confirm(t('users.delete_confirm','Delete this user? This will also remove them from all campaigns.'))) return;
+    await fetch(`/api/users/${id}`, { method: 'DELETE' });
     loadUsers();
 }
 
 async function exportUsers() {
-    const res = await fetch('/users/api/export');
+    const res = await fetch('/api/users/export');
     const users = await res.json();
     const blob = new Blob([JSON.stringify(users, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -119,17 +119,17 @@ async function importUsers(input) {
     const text = await file.text();
     try {
         const users = JSON.parse(text);
-        const res = await fetch('/users/api/import', {
+        const res = await fetch('/api/users/import', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(users)
         });
         if (res.ok) {
             loadUsers();
-            alert('Users imported successfully');
+            alert(t('users.import_success','Users imported successfully'));
         }
     } catch (e) {
-        alert('Invalid JSON file');
+        alert(t('users.import_error','Invalid JSON file'));
     }
     input.value = '';
 }

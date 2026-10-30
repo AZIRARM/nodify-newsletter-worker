@@ -1,8 +1,17 @@
+// Fallback i18n : si une fonction globale t() existe (injectée par Thymeleaf), on l'utilise,
+// sinon on retourne la valeur par défaut.
+window.t = window.t || function (key, fallback) {
+    if (window.i18nMessages && window.i18nMessages[key]) {
+        return window.i18nMessages[key];
+    }
+    return fallback !== undefined ? fallback : key;
+};
+
 let currentScheduleCampaignId = null;
 
 function openScheduleModal(campaignId, startDate, endDate, scheduledStart, retryInterval, active) {
     if (!campaignId || campaignId === 'null' || campaignId === 'undefined') {
-        alert('Error: Invalid campaign ID');
+        alert(t('common.error','Error: Invalid campaign ID'));
         return;
     }
 
@@ -32,9 +41,11 @@ function closeScheduleModal() {
 
 async function saveSchedule() {
     if (!currentScheduleCampaignId) {
-        alert('Error: No campaign selected');
+        alert(t('common.error','Error: No campaign selected'));
         return;
     }
+
+    const campaignId = currentScheduleCampaignId;   // 🔒 capture
 
     const data = {
         startDate: document.getElementById('scheduleStartDate').value,
@@ -45,21 +56,23 @@ async function saveSchedule() {
     };
 
     try {
-        const response = await fetch(`/campaign/${currentScheduleCampaignId}/schedule`, {
+        const response = await fetch(`/api/campaigns/${campaignId}/schedule`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(data)
+            body: new URLSearchParams(data),
+            redirect: 'manual'
         });
 
-        if (response.ok) {
+        if (response.ok || response.type === 'opaqueredirect' ||
+            response.status === 0 || response.status === 302) {
             closeScheduleModal();
-            location.reload();
+            window.location.href = `/api/campaigns/${campaignId}/detail`;
         } else {
-            alert('Error saving schedule');
+            alert(t('schedule.error','Error saving schedule'));
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error saving schedule');
+        closeScheduleModal();
+        window.location.href = `/api/campaigns/${campaignId}/detail`;
     }
 }
 

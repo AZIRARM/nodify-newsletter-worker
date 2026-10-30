@@ -1,23 +1,18 @@
 package com.nodify.newsletter.controller;
 
-import com.nodify.newsletter.model.Campaign;
-import com.nodify.newsletter.model.Newsletter;
-import com.nodify.newsletter.model.UserNewsletterStatus;
 import com.nodify.newsletter.repository.CampaignRepository;
 import com.nodify.newsletter.repository.NewsletterRepository;
 import com.nodify.newsletter.repository.UserNewsletterStatusRepository;
 import com.nodify.newsletter.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping("/api/dashboard")
 public class DashboardController {
 
     @Autowired
@@ -29,7 +24,9 @@ public class DashboardController {
     @Autowired
     private UserNewsletterStatusRepository statusRepository;
 
-    @GetMapping("/")
+    // ==================== PAGE HTML ====================
+
+    @GetMapping
     public String dashboard(Model model) {
         model.addAttribute("userCount", userRepository.count());
         model.addAttribute("campaignCount", campaignRepository.count());
@@ -39,12 +36,9 @@ public class DashboardController {
         return "dashboard";
     }
 
-    @GetMapping("/campaigns")
-    public String campaignsPage() {
-        return "campaigns";
-    }
+    // ==================== API REST ====================
 
-    @GetMapping("/api/stats")
+    @GetMapping("/stats")
     @ResponseBody
     public Map<String, Long> getStats() {
         Map<String, Long> stats = new HashMap<>();
@@ -52,116 +46,6 @@ public class DashboardController {
         stats.put("campaignCount", campaignRepository.count());
         stats.put("sentCount", statusRepository.count());
         stats.put("openedCount", statusRepository.countByOpenedTrue());
-        return stats;
-    }
-
-    @GetMapping("/api/campaigns")
-    @ResponseBody
-    public List<Map<String, Object>> getCampaigns() {
-        List<Campaign> campaigns = campaignRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-
-        for (Campaign c : campaigns) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId());
-            map.put("name", c.getName());
-            map.put("status", c.getStatus());
-            map.put("startDate", c.getStartDate());
-            map.put("endDate", c.getEndDate());
-            map.put("scheduledStart", c.getScheduledStart());
-            map.put("retryIntervalMinutes", c.getRetryIntervalMinutes());
-            map.put("active", c.getActive());
-            if (c.getNewsletter() != null) {
-                map.put("newsletterId", c.getNewsletter().getId());
-                map.put("newsletterTitle", c.getNewsletter().getTitle());
-            } else {
-                map.put("newsletterId", null);
-                map.put("newsletterTitle", null);
-            }
-
-            String campaignStatus = "active";
-            if (c.getEndDate() != null && now.isAfter(c.getEndDate())) {
-                campaignStatus = "inactive";
-            } else if (c.getStartDate() != null && now.isBefore(c.getStartDate())) {
-                campaignStatus = "scheduled";
-            }
-            map.put("campaignStatus", campaignStatus);
-
-            long sent = statusRepository.countByNewsletter(c.getNewsletter());
-            long opened = statusRepository.countOpenedByNewsletter(c.getNewsletter());
-            map.put("sentCount", sent);
-            map.put("openedCount", opened);
-            map.put("openRate", sent > 0 ? (opened * 100 / sent) : 0);
-            result.add(map);
-        }
-        return result;
-    }
-
-    @DeleteMapping("/api/campaigns/{id}")
-    @ResponseBody
-    public ResponseEntity<?> deleteCampaign(@PathVariable Long id) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        if (campaign == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        campaign.setNewsletter(null);
-        campaignRepository.save(campaign);
-
-        List<UserNewsletterStatus> statuses = statusRepository.findByCampaign(campaign);
-        statusRepository.deleteAll(statuses);
-
-        campaignRepository.delete(campaign);
-
-        return ResponseEntity.ok().body(Map.of("success", true));
-    }
-
-    @GetMapping("/api/newsletters")
-    @ResponseBody
-    public List<Newsletter> getNewsletters() {
-        return newsletterRepository.findAll();
-    }
-
-    @GetMapping("/api/users/recent")
-    @ResponseBody
-    public List<Map<String, Object>> getRecentUsers(@RequestParam(defaultValue = "5") int limit) {
-        return userRepository.findAll().stream()
-                .limit(limit)
-                .map(u -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", u.getId());
-                    map.put("email", u.getEmail());
-                    map.put("firstName", u.getFirstName());
-                    map.put("lastName", u.getLastName());
-                    map.put("createdAt", u.getCreatedAt());
-                    return map;
-                })
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/api/campaigns/{id}")
-    @ResponseBody
-    public Campaign getCampaign(@PathVariable Long id) {
-        return campaignRepository.findById(id).orElse(null);
-    }
-
-    @GetMapping("/api/campaigns/{id}/stats")
-    @ResponseBody
-    public Map<String, Object> getCampaignStats(@PathVariable Long id) {
-        Campaign campaign = campaignRepository.findById(id).orElse(null);
-        Map<String, Object> stats = new HashMap<>();
-        if (campaign != null) {
-            long sentCount = statusRepository.countByCampaign(campaign);
-            long openedCount = statusRepository.countOpenedByCampaign(campaign);
-            stats.put("sentCount", sentCount);
-            stats.put("openedCount", openedCount);
-            stats.put("openRate", sentCount > 0 ? (openedCount * 100 / sentCount) : 0);
-        } else {
-            stats.put("sentCount", 0);
-            stats.put("openedCount", 0);
-            stats.put("openRate", 0);
-        }
         return stats;
     }
 }

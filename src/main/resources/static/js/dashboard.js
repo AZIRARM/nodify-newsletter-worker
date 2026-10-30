@@ -10,7 +10,7 @@ async function loadData() {
 
 async function loadStats() {
     try {
-        const res = await fetch(`${API_BASE}/api/stats`);
+        const res = await fetch(`${API_BASE}/api/dashboard/stats`);
         const stats = await res.json();
         document.getElementById('totalUsers').textContent = stats.userCount || 0;
         document.getElementById('totalCampaigns').textContent = stats.campaignCount || 0;
@@ -24,9 +24,13 @@ async function loadStats() {
 
 async function loadCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    const emptyMsg = grid.dataset.empty || 'No campaigns yet';
+    const loadingMsg = grid.dataset.loading || 'Loading...';
+    const errorMsg = grid.dataset.error || 'Error';
+
+    grid.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${loadingMsg}</div>`;
     try {
-        const res = await fetch(`${API_BASE}/api/campaigns`);
+        const res = await fetch(`${API_BASE}/api/campaigns/list`);
         const campaigns = await res.json();
 
         const now = new Date();
@@ -47,13 +51,12 @@ async function loadCampaigns() {
         });
 
         if (!filteredCampaigns || filteredCampaigns.length === 0) {
-            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns yet</div>';
+            grid.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${emptyMsg}</div>`;
             return;
         }
 
         grid.innerHTML = filteredCampaigns.map(c => {
-            const newsletterLink = c.newsletterId ? `/newsletter/${c.newsletterId}` : '#';
-            const newsletterTitle = c.newsletterTitle || 'Newsletter';
+            const newsletterLink = c.newsletterId ? `/api/campaigns/newsletter/${c.newsletterId}` : '#';
 
             let scheduleInfo = '';
             if (c.scheduledStart) {
@@ -82,7 +85,7 @@ async function loadCampaigns() {
                     <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
                 </div>
                 <div class="campaign-actions">
-                    <a href="/campaign/${c.id}" class="btn-view">📊 Details</a>
+                    <a href="/api/campaigns/${c.id}/detail" class="btn-view">📊 Details</a>
                     <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 View Newsletter</a>
                     <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 Delete</button>
                 </div>
@@ -90,19 +93,23 @@ async function loadCampaigns() {
         `}).join('');
     } catch (error) {
         console.error('Error loading campaigns:', error);
-        grid.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> Error loading campaigns</div>';
+        grid.innerHTML = `<div class="empty"><i class="fas fa-exclamation-triangle"></i> ${errorMsg}</div>`;
     }
 }
 
 async function loadRecentUsers() {
     const container = document.getElementById('usersGrid');
     if (!container) return;
-    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    const emptyMsg = container.dataset.empty || 'No users yet';
+    const loadingMsg = container.dataset.loading || 'Loading...';
+    const errorMsg = container.dataset.error || 'Error';
+
+    container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${loadingMsg}</div>`;
     try {
         const res = await fetch(`${API_BASE}/api/users/recent`);
         const users = await res.json();
         if (!users || users.length === 0) {
-            container.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No users yet</div>';
+            container.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${emptyMsg}</div>`;
             return;
         }
         container.innerHTML = users.map(u => `
@@ -116,7 +123,7 @@ async function loadRecentUsers() {
         `).join('');
     } catch (error) {
         console.error('Error loading users:', error);
-        container.innerHTML = '<div class="empty">Error loading users</div>';
+        container.innerHTML = `<div class="empty">${errorMsg}</div>`;
     }
 }
 

@@ -54,14 +54,14 @@
                 <a href="/" class="nav-link" th:classappend="${currentPage == 'dashboard' ? 'active' : ''}">
                     <i class="fas fa-tachometer-alt"></i> <span th:text="#{dashboard.title}">Dashboard</span>
                 </a>
-                <a href="/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
+                <a href="/api/campaigns" class="nav-link" th:classappend="${currentPage == 'campaigns' ? 'active' : ''}">
                     <i class="fas fa-list"></i> <span th:text="#{campaigns.title}">Campaigns</span>
                 </a>
-                <a href="/newsletters" class="nav-link"
+                <a href="/api/newsletters" class="nav-link"
                     th:classappend="${currentPage == 'newsletters' ? 'active' : ''}">
                     <i class="fas fa-newspaper"></i> <span th:text="#{newsletters.title}">Newsletters</span>
                 </a>
-                <a href="/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
+                <a href="/api/users" class="nav-link" th:classappend="${currentPage == 'users' ? 'active' : ''}">
                     <i class="fas fa-users"></i> <span th:text="#{dashboard.users}">Users</span>
                 </a>
             </div>
@@ -74,6 +74,90 @@
                 <a href="?lang=pt">🇵🇹</a>
             </div>
         </div>
+
+           <script th:inline="javascript">
+            /*<![CDATA[*/
+            window.i18n = {
+                'status.completed':        /*[[#{status.completed}]]*/       'Completed',
+                'status.sending':          /*[[#{status.sending}]]*/         'Sending',
+                'status.scheduled':        /*[[#{status.scheduled}]]*/       'Scheduled',
+                'status.expired':          /*[[#{status.expired}]]*/         'Expired',
+                'status.active':           /*[[#{status.active}]]*/          'Active',
+                'status.inactive':         /*[[#{status.inactive}]]*/        'Inactive',
+                'status.draft':            /*[[#{status.draft}]]*/           'Draft',
+                'status.failed':           /*[[#{status.failed}]]*/          'Failed',
+                'status.paused':           /*[[#{status.paused}]]*/          'Paused',
+                'status.pending':          /*[[#{status.pending}]]*/         'Pending',
+                'campaigns.active':        /*[[#{campaigns.active}]]*/       'Active',
+                'campaigns.inactive':      /*[[#{campaigns.inactive}]]*/     'Expired',
+                'campaigns.not_started':   /*[[#{campaigns.not_started}]]*/  'Not started',
+                'campaign.sent':           /*[[#{campaign.sent}]]*/          'Sent',
+                'campaign.opened':         /*[[#{campaign.opened}]]*/        'Opened',
+                'campaign.rate':           /*[[#{campaign.rate}]]*/          'Rate',
+                'campaign.status_open':    /*[[#{campaign.status_open}]]*/   'Opened',
+                'campaign.status_not_open':/*[[#{campaign.status_not_open}]]*/ 'Not opened',
+                'campaign.no_current':     /*[[#{campaign.no_current}]]*/    'No users in this campaign',
+                'campaign.no_available':   /*[[#{campaign.no_available}]]*/  'No available users',
+                'campaign.remove_confirm': /*[[#{campaign.remove_confirm}]]*/ 'Remove this user from the campaign?',
+                'campaign.retry_confirm':  /*[[#{campaign.retry_confirm}]]*/ 'Retry sending?',
+                'campaign.retry_success':  /*[[#{campaign.retry_success}]]*/ 'Retry started',
+                'campaign.retry_error':    /*[[#{campaign.retry_error}]]*/   'Error starting retry',
+                'campaign.import_success': /*[[#{campaign.import_success}]]*/ 'Users imported successfully',
+                'campaign.import_error':   /*[[#{campaign.import_error}]]*/  'Invalid JSON format',
+                'campaign.view_newsletter':/*[[#{campaign.view_newsletter}]]*/ 'View Newsletter',
+                'newsletter.no_current':   /*[[#{newsletter.no_current}]]*/  'No subscribers',
+                'newsletter.no_available': /*[[#{newsletter.no_available}]]*/ 'No available users',
+                'newsletter.remove_confirm':/*[[#{newsletter.remove_confirm}]]*/ 'Remove this user?',
+                'newsletter.import_success':/*[[#{newsletter.import_success}]]*/ 'Users imported',
+                'newsletter.import_error': /*[[#{newsletter.import_error}]]*/ 'Invalid JSON format',
+                'newsletter.users':        /*[[#{newsletter.users}]]*/       'Users',
+                'newsletter.no_content':   /*[[#{newsletter.no_content}]]*/  'No subject',
+                'newsletters.no_newsletters':/*[[#{newsletters.no_newsletters}]]*/ 'No newsletters found',
+                'newsletters.error':       /*[[#{newsletters.error}]]*/      'Error loading newsletters',
+                'newsletters.used_in':     /*[[#{newsletters.used_in}]]*/    'Used in',
+                'newsletters.campaigns':   /*[[#{newsletters.campaigns}]]*/  'campaign(s)',
+                'newsletters.cannot_delete':/*[[#{newsletters.cannot_delete}]]*/ 'Cannot delete',
+                'newsletters.delete_confirm':/*[[#{newsletters.delete_confirm}]]*/ 'Delete this?',
+                'newsletters.delete_error':/*[[#{newsletters.delete_error}]]*/ 'Error deleting',
+                'newsletters.created_at':  /*[[#{newsletters.created_at}]]*/ 'Created',
+                'newsletters.create':      /*[[#{newsletters.create}]]*/     'Create Newsletter',
+                'newsletters.save_error':  /*[[#{newsletters.save_error}]]*/ 'Error creating newsletter',
+                'newsletters.code_required':/*[[#{newsletters.code_required}]]*/ 'Code is required',
+                'newsletters.title_required':/*[[#{newsletters.title_required}]]*/ 'Title is required',
+                'dashboard.empty_campaigns':/*[[#{dashboard.empty_campaigns}]]*/ 'No campaigns',
+                'dashboard.empty_users':   /*[[#{dashboard.empty_users}]]*/  'No users',
+                'dashboard.scheduled':     /*[[#{campaigns.scheduled}]]*/    'Scheduled',
+                'dashboard.start':         /*[[#{campaign.start_date}]]*/    'Start',
+                'dashboard.end':           /*[[#{campaign.end_date}]]*/      'End',
+                'users.no_users':          /*[[#{users.no_users}]]*/         'No users found',
+                'users.add_user_title':    /*[[#{users.add_user_title}]]*/   'Add User',
+                'users.edit_user':         /*[[#{users.edit_user}]]*/        'Edit User',
+                'users.error_saving':      /*[[#{users.error_saving}]]*/     'Error saving user',
+                'users.delete_confirm':    /*[[#{users.delete_confirm}]]*/   'Delete this user?',
+                'users.import_success':    /*[[#{users.import_success}]]*/   'Users imported',
+                'users.import_error':      /*[[#{users.import_error}]]*/     'Invalid JSON file',
+                'users.email_required':    /*[[#{users.email_required}]]*/   'Email is required',
+                'schedule.error':          /*[[#{schedule.error}]]*/         'Error saving schedule',
+                'common.error':            /*[[#{common.error}]]*/           'Error',
+                'common.loading':          /*[[#{common.loading}]]*/         'Loading...',
+                'common.details':          /*[[#{common.details}]]*/         'Details',
+                'common.delete':           /*[[#{common.delete}]]*/          'Delete',
+                'common.schedule':         /*[[#{common.schedule}]]*/        'Schedule',
+                'common.add':              /*[[#{common.add}]]*/             'Add',
+                'common.remove':           /*[[#{common.remove}]]*/          'Remove',
+                'common.edit':             /*[[#{common.edit}]]*/            'Edit',
+                'common.cancel':           /*[[#{common.cancel}]]*/          'Cancel',
+                'common.close':            /*[[#{common.close}]]*/           'Close',
+                'empty.no_campaigns':      /*[[#{empty.no_campaigns}]]*/     'No campaigns',
+                'campaigns.create_error':  /*[[#{campaigns.create_error}]]*/ 'Please fill required fields',
+                'campaigns.newsletter_placeholder': /*[[#{campaigns.newsletter_placeholder}]]*/ '-- Select Newsletter --'
+            };
+
+            window.t = function (key, fallback) {
+                return (window.i18n && window.i18n[key]) || fallback || key;
+            };
+            /*]]>*/
+        </script>
     </div>
 </body>
 

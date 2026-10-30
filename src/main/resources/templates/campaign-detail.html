@@ -15,7 +15,7 @@
 </head>
 
 <body>
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <input type="hidden" id="campaignId" th:value="${campaign.id}" />
 
@@ -23,7 +23,7 @@
         <div class="action-buttons">
             <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> <span
                     th:text="#{dashboard.back}">Back</span></a>
-            <a th:href="@{/newsletter/{id}(id=${campaign.newsletter.id})}" class="view-newsletter-btn">
+            <a th:href="@{/api/newsletters/{id}(id=${campaign.newsletter.id})}" class="view-newsletter-btn">
                 <i class="fas fa-eye"></i> <span th:text="#{campaign.view_newsletter}">View Newsletter</span>
             </a>
         </div>
