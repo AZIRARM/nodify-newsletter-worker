@@ -17,7 +17,7 @@
 
 ```
 Nodify Headless CMS (publish content) 
-  ↓ Webhook (POST /webhook/trigger)
+  ↓ Webhook (POST /api/webhook/trigger)
 Nodify Newsletter Worker
   ↓ Fetches content from Nodify API
   ↓ Stores in PostgreSQL database
@@ -141,7 +141,7 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 | Field | Value |
 |-------|-------|
-| Trigger URL | `https://your-server:8080/webhook/trigger` |
+| Trigger URL | `https://your-server:8080/api/webhook/trigger` |
 | Trigger Secret | (optional, same as `WEBHOOK_SECRET`) |
 | Folder | Any name (used as campaign identifier) |
 
@@ -153,22 +153,22 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 ```json
 {
-  "event_type": "newsletter-node",
-  "client_payload": {
-    "campaignCode": "summer-sale-2024",
+  "eventType": "newsletter-node",
+  "clientPayload": {
+    "campaignCode": "black-friday-2026",
     "newsletterCode": "NEWSLETTER-MONTHLY",
-    "contentCode": "HTML-CONTENT-xyz123",
-    "title": "Summer Sale Newsletter",
-    "subject": "Don't miss our summer deals!",
-    "scheduledStart": "2024-07-01T09:00:00",
-    "startDate": "2024-07-01T00:00:00",
-    "endDate": "2024-07-31T23:59:59",
+    "contentCode": "HTML-CONTENT-bf2026",
+    "title": "Black Friday 2026 Newsletter",
+    "subject": "Nos offres Black Friday sont la",
+    "scheduledStart": "2026-11-15T09:00:00",
+    "startDate": "2026-11-15T08:00:00",
+    "endDate": "2026-12-15T23:59:59",
     "emails": [
       "user1@example.com",
       "user2@example.com",
       "user3@example.com"
     ],
-    "timestamp": "2024-06-01T10:00:00Z"
+    "timestamp": "2026-10-30T22:05:00Z"
   }
 }
 ```
@@ -177,27 +177,27 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event_type` | string | ✅ | Must be `"newsletter-node"` |
-| `client_payload` | object | ✅ | Main payload container |
-| `client_payload.campaignCode` | string | ❌ | Unique campaign identifier. If provided, creates/updates a campaign |
-| `client_payload.newsletterCode` | string | ✅ | Unique newsletter identifier. Creates newsletter if not exists |
-| `client_payload.contentCode` | string | ✅ | Nodify content code to fetch HTML/JSON content |
-| `client_payload.title` | string | ❌ | Newsletter title (overrides JSON config) |
-| `client_payload.subject` | string | ❌ | Email subject line (overrides JSON config) |
-| `client_payload.scheduledStart` | string (ISO 8601) | ❌ | When to start sending. If empty, starts immediately |
-| `client_payload.startDate` | string (ISO 8601) | ❌ | Campaign start date (for scheduling logic) |
-| `client_payload.endDate` | string (ISO 8601) | ❌ | Campaign end date (no emails sent after this) |
-| `client_payload.emails` | array of strings | ❌ | List of emails to subscribe to the newsletter |
-| `client_payload.timestamp` | string (ISO 8601) | ❌ | Webhook timestamp |
+| `eventType` | string | ✅ | Must be `"newsletter-node"` |
+| `clientPayload` | object | ✅ | Main payload container |
+| `clientPayload.campaignCode` | string | ❌ | Unique campaign identifier. If provided, creates/updates a campaign |
+| `clientPayload.newsletterCode` | string | ✅ | Unique newsletter identifier. Creates newsletter if not exists |
+| `clientPayload.contentCode` | string | ✅ | Nodify content code to fetch HTML/JSON content |
+| `clientPayload.title` | string | ❌ | Newsletter title (overrides JSON config) |
+| `clientPayload.subject` | string | ❌ | Email subject line (overrides JSON config) |
+| `clientPayload.scheduledStart` | string (ISO 8601) | ❌ | When to start sending. If empty, starts immediately |
+| `clientPayload.startDate` | string (ISO 8601) | ❌ | Campaign start date (for scheduling logic) |
+| `clientPayload.endDate` | string (ISO 8601) | ❌ | Campaign end date (no emails sent after this) |
+| `clientPayload.emails` | array of strings | ❌ | List of emails to subscribe to the newsletter |
+| `clientPayload.timestamp` | string (ISO 8601) | ❌ | Webhook timestamp |
 
 #### Minimal Payload (Newsletter only)
 
 ```json
 {
-  "event_type": "newsletter-node",
-  "client_payload": {
+  "eventType": "newsletter-node",
+  "clientPayload": {
     "newsletterCode": "NEWSLETTER-MONTHLY",
-    "contentCode": "HTML-CONTENT-xyz123"
+    "contentCode": "HTML-CONTENT-bf2026"
   }
 }
 ```
@@ -206,11 +206,11 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 ```json
 {
-  "event_type": "newsletter-node",
-  "client_payload": {
-    "campaignCode": "summer-sale-2024",
+  "eventType": "newsletter-node",
+  "clientPayload": {
+    "campaignCode": "black-friday-2026",
     "newsletterCode": "NEWSLETTER-MONTHLY",
-    "contentCode": "HTML-CONTENT-xyz123"
+    "contentCode": "HTML-CONTENT-bf2026"
   }
 }
 ```
@@ -219,20 +219,22 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 ```json
 {
-  "event_type": "newsletter-node",
-  "client_payload": {
-    "campaignCode": "black-friday-2024",
-    "newsletterCode": "NEWSLETTER-PROMO",
-    "contentCode": "HTML-BLACKFRIDAY",
-    "title": "Black Friday Special",
-    "subject": "Up to 70% off!",
-    "scheduledStart": "2024-11-29T08:00:00",
-    "startDate": "2024-11-25T00:00:00",
-    "endDate": "2024-12-02T23:59:59",
+  "eventType": "newsletter-node",
+  "clientPayload": {
+    "campaignCode": "black-friday-2026",
+    "newsletterCode": "NEWSLETTER-MONTHLY",
+    "contentCode": "HTML-CONTENT-bf2026",
+    "title": "Black Friday 2026 Newsletter",
+    "subject": "Nos offres Black Friday sont la",
+    "scheduledStart": "2026-11-15T09:00:00",
+    "startDate": "2026-11-15T08:00:00",
+    "endDate": "2026-12-15T23:59:59",
     "emails": [
-      "vip1@example.com",
-      "vip2@example.com"
-    ]
+      "user1@example.com",
+      "user2@example.com",
+      "user3@example.com"
+    ],
+    "timestamp": "2026-10-30T22:05:00Z"
   }
 }
 ```
@@ -263,25 +265,25 @@ Create a **content** (not a node) with newsletter-worker enabled and configure:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/webhook/trigger` | Receive webhook from Nodify |
-| GET | `/webhook/track/{id}` | Tracking pixel (image/gif) |
-| GET | `/webhook/subscribe?email={email}&newsletter={id}` | Subscribe user to newsletter |
-| GET | `/webhook/unsubscribe?email={email}&newsletter={id}` | Unsubscribe user from newsletter |
-| GET | `/` | Dashboard UI |
-| GET | `/campaigns` | Campaigns list UI |
-| GET | `/campaign/{id}` | Campaign details UI |
-| GET | `/newsletters` | Newsletters list UI |
-| GET | `/newsletters/{id}/manage-users` | Manage newsletter subscribers UI |
-| GET | `/users` | Users management UI |
-| GET | `/export` | Export all data as JSON |
-| POST | `/import` | Import data from JSON |
+| POST | `/api/webhook/trigger` | Receive webhook from Nodify |
+| GET | `/api/webhook/track/{trackingId}` | Tracking pixel (image/gif) |
+| GET | `/api/webhook/subscribe?email={email}&newsletter={id}` | Subscribe user to newsletter |
+| GET | `/api/webhook/unsubscribe?email={email}&newsletter={id}` | Unsubscribe user from newsletter |
+| GET | `/api/dashboard` | Dashboard UI |
+| GET | `/api/campaigns` | Campaigns list UI |
+| GET | `/api/campaigns/{id}/detail` | Campaign details UI |
+| GET | `/api/newsletters` | Newsletters list UI |
+| GET | `/api/newsletters/{id}/manage-users` | Manage newsletter subscribers UI |
+| GET | `/api/users` | Users management UI |
+| GET | `/api/export` | Export all data as JSON |
+| POST | `/api/import` | Import data from JSON |
 
 ## Subscribe/Unsubscribe Endpoints
 
 ### Subscribe User
 
 ```http
-GET /webhook/subscribe?email=user@example.com&newsletter=1
+GET /api/webhook/subscribe?email=user1@example.com&newsletter=NEWSLETTER-MONTHLY
 ```
 
 **Parameters:**
@@ -299,7 +301,7 @@ GET /webhook/subscribe?email=user@example.com&newsletter=1
 ### Unsubscribe User
 
 ```http
-GET /webhook/unsubscribe?email=user@example.com&newsletter=1
+GET /api/webhook/unsubscribe?email=user1@example.com&newsletter=NEWSLETTER-MONTHLY
 ```
 
 **Parameters:**
@@ -329,7 +331,7 @@ GET /webhook/unsubscribe?email=user@example.com&newsletter=1
 When an email is sent, a unique tracking pixel is embedded:
 
 ```html
-<img src="https://your-server/webhook/track/unique-id" width="1" height="1" />
+<img src="https://your-server/api/webhook/track/unique-id" width="1" height="1" />
 ```
 
 When the user opens the email, the application records:
@@ -407,13 +409,13 @@ volumes:
 ### Minimal Request
 
 ```bash
-curl -X POST http://localhost:8080/webhook/trigger \
+curl -X POST http://localhost:8080/api/webhook/trigger \
   -H "Content-Type: application/json" \
   -d '{
-    "event_type": "newsletter-node",
-    "client_payload": {
-      "newsletterCode": "TEST-NEWSLETTER",
-      "contentCode": "YOUR-CONTENT-CODE"
+    "eventType": "newsletter-node",
+    "clientPayload": {
+      "newsletterCode": "NEWSLETTER-MONTHLY",
+      "contentCode": "HTML-CONTENT-bf2026"
     }
   }'
 ```
@@ -421,20 +423,21 @@ curl -X POST http://localhost:8080/webhook/trigger \
 ### Full Request with Campaign and Emails
 
 ```bash
-curl -X POST http://localhost:8080/webhook/trigger \
+curl -X POST http://localhost:8080/api/webhook/trigger \
   -H "Content-Type: application/json" \
   -d '{
-    "event_type": "newsletter-node",
-    "client_payload": {
-      "campaignCode": "test-campaign",
-      "newsletterCode": "TEST-NEWSLETTER",
-      "contentCode": "YOUR-CONTENT-CODE",
-      "title": "Test Newsletter",
-      "subject": "Test Subject",
-      "scheduledStart": "2024-12-01T10:00:00",
-      "startDate": "2024-12-01T00:00:00",
-      "endDate": "2024-12-31T23:59:59",
-      "emails": ["test1@example.com", "test2@example.com"]
+    "eventType": "newsletter-node",
+    "clientPayload": {
+      "campaignCode": "black-friday-2026",
+      "newsletterCode": "NEWSLETTER-MONTHLY",
+      "contentCode": "HTML-CONTENT-bf2026",
+      "title": "Black Friday 2026 Newsletter",
+      "subject": "Nos offres Black Friday sont la",
+      "scheduledStart": "2026-11-15T09:00:00",
+      "startDate": "2026-11-15T08:00:00",
+      "endDate": "2026-12-15T23:59:59",
+      "emails": ["user1@example.com", "user2@example.com", "user3@example.com"],
+      "timestamp": "2026-10-30T22:05:00Z"
     }
   }'
 ```
@@ -442,14 +445,14 @@ curl -X POST http://localhost:8080/webhook/trigger \
 ### Request with Authentication
 
 ```bash
-curl -X POST http://localhost:8080/webhook/trigger \
+curl -X POST http://localhost:8080/api/webhook/trigger \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer your-webhook-secret" \
   -d '{
-    "event_type": "newsletter-node",
-    "client_payload": {
-      "newsletterCode": "TEST-NEWSLETTER",
-      "contentCode": "YOUR-CONTENT-CODE"
+    "eventType": "newsletter-node",
+    "clientPayload": {
+      "newsletterCode": "NEWSLETTER-MONTHLY",
+      "contentCode": "HTML-CONTENT-bf2026"
     }
   }'
 ```
@@ -458,11 +461,11 @@ curl -X POST http://localhost:8080/webhook/trigger \
 
 | URL | Description |
 |-----|-------------|
-| `http://localhost:8080` | Dashboard |
-| `http://localhost:8080/campaigns` | Campaigns list |
-| `http://localhost:8080/newsletters` | Newsletters list |
-| `http://localhost:8080/users` | Users management |
-| `http://localhost:8080/health` | Health check |
+| `http://localhost:8080/api/dashboard` | Dashboard |
+| `http://localhost:8080/api/campaigns` | Campaigns list |
+| `http://localhost:8080/api/newsletters` | Newsletters list |
+| `http://localhost:8080/api/users` | Users management |
+| `http://localhost:8080/api/dashboard/stats` | Stats API |
 
 ## License
 
