@@ -253,4 +253,16 @@ public class NewsletterController {
         subscriptionRepository.deleteByNewsletterAndUser(newsletter, user);
         return ResponseEntity.ok().body(Map.of("success", true));
     }
+
+    
+
+    @GetMapping("/{newsletterId}")
+    public String viewNewsletter(@PathVariable Long newsletterId, Model model) {
+        Newsletter newsletter = newsletterRepository.findById(newsletterId).orElse(null);
+        if (newsletter == null) {
+            return "redirect:/api/campaigns";
+        }
+        model.addAttribute("newsletter", newsletter);
+        return "newsletter-view";
+    }
 }

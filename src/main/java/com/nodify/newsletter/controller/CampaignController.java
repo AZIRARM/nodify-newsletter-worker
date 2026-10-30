@@ -55,16 +55,6 @@ public class CampaignController {
         return "schedule-form";
     }
 
-    @GetMapping("/newsletter/{newsletterId}")
-    public String viewNewsletter(@PathVariable Long newsletterId, Model model) {
-        Newsletter newsletter = newsletterRepository.findById(newsletterId).orElse(null);
-        if (newsletter == null) {
-            return "redirect:/api/campaigns";
-        }
-        model.addAttribute("newsletter", newsletter);
-        return "newsletter-view";
-    }
-
     // ==================== API REST ====================
 
     @GetMapping("/list")

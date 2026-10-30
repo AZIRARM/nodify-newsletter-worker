@@ -36,6 +36,8 @@ async function saveSchedule() {
         return;
     }
 
+    const campaignId = currentScheduleCampaignId;   // 🔒 capture
+
     const data = {
         startDate: document.getElementById('scheduleStartDate').value,
         endDate: document.getElementById('scheduleEndDate').value,
@@ -45,24 +47,23 @@ async function saveSchedule() {
     };
 
     try {
-        const response = await fetch(`/api/campaigns/${currentScheduleCampaignId}/schedule`, {
+        const response = await fetch(`/api/campaigns/${campaignId}/schedule`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams(data),
             redirect: 'manual'
         });
 
-        // Le contrôleur renvoie une redirection 302 vers /detail
-        if (response.ok || response.type === 'opaqueredirect' || response.status === 0 || response.status === 302) {
+        if (response.ok || response.type === 'opaqueredirect' ||
+            response.status === 0 || response.status === 302) {
             closeScheduleModal();
-            window.location.href = `/api/campaigns/${currentScheduleCampaignId}/detail`;
+            window.location.href = `/api/campaigns/${campaignId}/detail`;
         } else {
             alert(t('schedule.error','Error saving schedule'));
         }
     } catch (error) {
-        // fetch avec redirect: 'manual' peut lever une erreur selon le navigateur — on considère que c'est OK
         closeScheduleModal();
-        window.location.href = `/api/campaigns/${currentScheduleCampaignId}/detail`;
+        window.location.href = `/api/campaigns/${campaignId}/detail`;
     }
 }
 

@@ -42,7 +42,7 @@ function renderNewsletters(newsletters) {
         </div>
         ${campaignsInfo}
         <div class="newsletter-actions">
-            <a href="/api/campaigns/newsletter/${n.id}" class="btn-view"><i class="fas fa-eye"></i> ${t('common.details','View')}</a>
+            <a href="/api/newsletters/${n.id}" class="btn-view"><i class="fas fa-eye"></i> ${t('common.details','View')}</a>
             <a href="/api/newsletters/${n.id}/manage-users" class="btn-users"><i class="fas fa-users"></i> ${t('newsletter.users','Users')}</a>
             <button class="btn-delete" onclick="deleteNewsletter(${n.id})" ${n.campaignCount > 0 ? 'disabled' : ''}>
                 <i class="fas fa-trash"></i> ${t('common.delete','Delete')}
