@@ -2,7 +2,7 @@ let currentScheduleCampaignId = null;
 
 function openScheduleModal(campaignId, startDate, endDate, scheduledStart, retryInterval, active) {
     if (!campaignId || campaignId === 'null' || campaignId === 'undefined') {
-        alert('Error: Invalid campaign ID');
+        alert(t('common.error','Error: Invalid campaign ID'));
         return;
     }
 
@@ -32,7 +32,7 @@ function closeScheduleModal() {
 
 async function saveSchedule() {
     if (!currentScheduleCampaignId) {
-        alert('Error: No campaign selected');
+        alert(t('common.error','Error: No campaign selected'));
         return;
     }
 
@@ -55,11 +55,11 @@ async function saveSchedule() {
             closeScheduleModal();
             location.reload();
         } else {
-            alert('Error saving schedule');
+            alert(t('schedule.error','Error saving schedule'));
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error saving schedule');
+        alert(t('schedule.error','Error saving schedule'));
     }
 }
 

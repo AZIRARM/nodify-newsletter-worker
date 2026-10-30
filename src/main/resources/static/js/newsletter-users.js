@@ -15,14 +15,14 @@ async function loadCurrentUsers() {
         renderPagination();
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('currentUsersBody').innerHTML = '<table><td colspan="5" class="error">Error loading subscribers</td></tr>';
+        document.getElementById('currentUsersBody').innerHTML = `<table><td colspan="5" class="error">${t('common.error','Error loading subscribers')}</td></tr>`;
     }
 }
 
 function renderCurrentUsers(users) {
     const tbody = document.getElementById('currentUsersBody');
     if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No subscribers in this newsletter</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">${t('newsletter.no_current','No subscribers in this newsletter')}</td></tr>`;
         return;
     }
     tbody.innerHTML = '';
@@ -35,7 +35,7 @@ function renderCurrentUsers(users) {
         const actionCell = row.insertCell(4);
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-btn';
-        removeBtn.innerHTML = 'Remove';
+        removeBtn.innerHTML = t('common.remove','Remove');
         removeBtn.onclick = function () { removeUserFromNewsletter(u.id); };
         actionCell.appendChild(removeBtn);
     });
@@ -74,7 +74,7 @@ async function loadAvailableUsers() {
 function renderAvailableUsers(users) {
     const tbody = document.getElementById('availableUsersBody');
     if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No available users</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">${t('newsletter.no_available','No available users')}</td></tr>`;
         return;
     }
     tbody.innerHTML = '';
@@ -87,7 +87,7 @@ function renderAvailableUsers(users) {
         const actionCell = row.insertCell(4);
         const addBtn = document.createElement('button');
         addBtn.className = 'add-btn';
-        addBtn.innerHTML = 'Add';
+        addBtn.innerHTML = t('common.add','Add');
         addBtn.onclick = function () { addUserToNewsletter(u.id); };
         actionCell.appendChild(addBtn);
     });
@@ -108,7 +108,7 @@ async function addUserToNewsletter(userId) {
 }
 
 async function removeUserFromNewsletter(userId) {
-    if (!confirm('Remove this user from the newsletter?')) return;
+    if (!confirm(t('newsletter.remove_confirm','Remove this user from the newsletter?'))) return;
     try {
         await fetch(`/newsletters/${newsletterId}/remove-user`, {
             method: 'DELETE',
@@ -131,7 +131,7 @@ async function createAndAddUser() {
         address: document.getElementById('newAddress').value
     };
     if (!data.email) {
-        alert('Email is required');
+        alert(t('users.email_required','Email is required'));
         return;
     }
     try {
@@ -190,11 +190,11 @@ async function importUsers() {
 
         loadCurrentUsers();
         loadAvailableUsers();
-        alert('Users imported successfully');
+        alert(t('newsletter.import_success','Users imported successfully'));
         document.getElementById('jsonImport').value = '';
     } catch (e) {
         console.error('Error:', e);
-        alert('Invalid JSON format or import error');
+        alert(t('newsletter.import_error','Invalid JSON format or import error'));
     }
 }
 

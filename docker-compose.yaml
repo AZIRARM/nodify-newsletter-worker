@@ -6,7 +6,7 @@ services:
     environment:
       - NODIFY_API_URL=${NODIFY_API_URL:-https://nodify-api.azirar.ovh}
       - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
-      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_P  ORT=${MAIL_PORT:-587}
       - MAIL_USERNAME=${MAIL_USERNAME:-}
       - MAIL_PASSWORD=${MAIL_PASSWORD:-}
       - TRACKING_BASE_URL=${TRACKING_BASE_URL:-http://localhost:7880}

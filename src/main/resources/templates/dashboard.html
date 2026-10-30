@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <div class="container">
         <div class="header">
@@ -72,9 +72,11 @@
             </div>
         </div>
 
-        <div class="campaigns-grid" id="campaignsGrid">
-            <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading
-                    campaigns...</span></div>
+        <div class="campaigns-grid" id="campaignsGrid"
+            th:attr="data-empty=#{dashboard.empty_campaigns},
+                    data-loading=#{dashboard.loading},
+                    data-error=#{common.error}">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading campaigns...</span></div>
         </div>
 
         <div class="section-title" style="margin-top: 40px;">
@@ -82,9 +84,11 @@
             <a href="/users" class="btn-refresh"><span th:text="#{dashboard.view_all}">View All</span></a>
         </div>
 
-        <div class="users-grid" id="usersGrid">
-            <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading
-                    users...</span></div>
+        <div class="users-grid" id="usersGrid"
+            th:attr="data-empty=#{dashboard.empty_users},
+                    data-loading=#{dashboard.loading},
+                    data-error=#{common.error}">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span th:text="#{dashboard.loading}">Loading users...</span></div>
         </div>
     </div>
     <script th:inline="javascript">

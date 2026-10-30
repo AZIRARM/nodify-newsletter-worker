@@ -24,7 +24,11 @@ async function loadStats() {
 
 async function loadCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    grid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    const emptyMsg = grid.dataset.empty || 'No campaigns yet';
+    const loadingMsg = grid.dataset.loading || 'Loading...';
+    const errorMsg = grid.dataset.error || 'Error';
+
+    grid.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${loadingMsg}</div>`;
     try {
         const res = await fetch(`${API_BASE}/api/campaigns`);
         const campaigns = await res.json();
@@ -47,7 +51,7 @@ async function loadCampaigns() {
         });
 
         if (!filteredCampaigns || filteredCampaigns.length === 0) {
-            grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns yet</div>';
+            grid.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${emptyMsg}</div>`;
             return;
         }
 
@@ -90,19 +94,23 @@ async function loadCampaigns() {
         `}).join('');
     } catch (error) {
         console.error('Error loading campaigns:', error);
-        grid.innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> Error loading campaigns</div>';
+        grid.innerHTML = `<div class="empty"><i class="fas fa-exclamation-triangle"></i> ${errorMsg}</div>`;
     }
 }
 
 async function loadRecentUsers() {
     const container = document.getElementById('usersGrid');
     if (!container) return;
-    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+    const emptyMsg = container.dataset.empty || 'No users yet';
+    const loadingMsg = container.dataset.loading || 'Loading...';
+    const errorMsg = container.dataset.error || 'Error';
+
+    container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${loadingMsg}</div>`;
     try {
         const res = await fetch(`${API_BASE}/api/users/recent`);
         const users = await res.json();
         if (!users || users.length === 0) {
-            container.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No users yet</div>';
+            container.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${emptyMsg}</div>`;
             return;
         }
         container.innerHTML = users.map(u => `
@@ -116,7 +124,7 @@ async function loadRecentUsers() {
         `).join('');
     } catch (error) {
         console.error('Error loading users:', error);
-        container.innerHTML = '<div class="empty">Error loading users</div>';
+        container.innerHTML = `<div class="empty">${errorMsg}</div>`;
     }
 }
 

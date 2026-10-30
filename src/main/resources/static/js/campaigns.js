@@ -1,139 +1,134 @@
-let allCampaigns = [];
-async function loadCampaigns() {
+const API_BASE = window.location.origin;
+
+async function loadData() {
+    await Promise.all([
+        loadStats(),
+        loadCampaigns(),
+        loadRecentUsers()
+    ]);
+}
+
+async function loadStats() {
     try {
-        const response = await fetch('/api/campaigns');
-        if (!response.ok) throw new Error('Failed to fetch campaigns');
-        allCampaigns = await response.json();
-        console.log('Campaigns loaded:', allCampaigns);
-        applyFilters();
+        const res = await fetch(`${API_BASE}/api/stats`);
+        const stats = await res.json();
+        document.getElementById('totalUsers').textContent = stats.userCount || 0;
+        document.getElementById('totalCampaigns').textContent = stats.campaignCount || 0;
+        document.getElementById('totalSent').textContent = stats.sentCount || 0;
+        const openRate = stats.sentCount > 0 ? Math.round((stats.openedCount / stats.sentCount) * 100) : 0;
+        document.getElementById('totalOpened').textContent = `${openRate}%`;
     } catch (error) {
-        console.error('Error loading campaigns:', error);
-        document.getElementById('campaignsGrid').innerHTML = '<div class="empty"><i class="fas fa-exclamation-triangle"></i> Error loading campaigns</div>';
+        console.error('Error loading stats:', error);
     }
 }
 
-function applyFilters() {
-    const status = document.getElementById('statusFilter').value;
-    const campaignStatus = document.getElementById('campaignStatusFilter').value;
-    const search = document.getElementById('searchInput').value.toLowerCase();
-
-    let filtered = allCampaigns;
-    if (status !== 'ALL') filtered = filtered.filter(c => c.status === status);
-    if (campaignStatus !== 'ALL') filtered = filtered.filter(c => c.campaignStatus === campaignStatus);
-    if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search));
-
-    console.log('Filtered campaigns count:', filtered.length);
-    renderCampaigns(filtered);
-}
-
-function renderCampaigns(campaigns) {
-    console.log('Campaign status values:', campaigns.map(c => ({ name: c.name, campaignStatus: c.campaignStatus })));
-
+async function loadCampaigns() {
     const grid = document.getElementById('campaignsGrid');
-    if (!campaigns || campaigns.length === 0) {
-        grid.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i> No campaigns found</div>';
-        return;
-    }
+    grid.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${t('common.loading','Loading...')}</div>`;
+    try {
+        const res = await fetch(`${API_BASE}/api/campaigns`);
+        const campaigns = await res.json();
 
-    grid.innerHTML = campaigns.map(c => {
-        const campaignId = c.id;
-        const startDate = c.startDate || '';
-        const endDate = c.endDate || '';
-        const scheduledStart = c.scheduledStart || '';
-        const retryInterval = c.retryIntervalMinutes || 0;
-        const active = c.active === true;
+        const now = new Date();
 
-        let campaignStatusBadge = '';
-        if (c.campaignStatus === 'active') {
-            campaignStatusBadge = '<span class="campaign-status-badge active">🟢 Active</span>';
-        } else if (c.campaignStatus === 'scheduled') {
-            campaignStatusBadge = '<span class="campaign-status-badge scheduled">⏰ Not started</span>';
-        } else if (c.campaignStatus === 'inactive') {
-            campaignStatusBadge = '<span class="campaign-status-badge inactive">⚫ Expired</span>';
-        } else {
-            campaignStatusBadge = '<span class="campaign-status-badge">❓ Unknown</span>';
+        const filteredCampaigns = campaigns.filter(c => {
+            if (c.endDate && new Date(c.endDate) < now) return false;
+            return true;
+        });
+
+        filteredCampaigns.sort((a, b) => {
+            const aStart = a.startDate ? new Date(a.startDate) : null;
+            const bStart = b.startDate ? new Date(b.startDate) : null;
+            const aIsActive = !aStart || aStart <= now;
+            const bIsActive = !bStart || bStart <= now;
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+            return 0;
+        });
+
+        if (!filteredCampaigns || filteredCampaigns.length === 0) {
+            grid.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${t('dashboard.empty_campaigns','No campaigns yet')}</div>`;
+            return;
         }
 
-        return `
-        <div class="campaign-card">
-            <div class="campaign-header">
-                <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
-                <div class="campaign-badges">
-                    <span class="status status-${c.status.toLowerCase()}">${c.status}</span>
-                    ${campaignStatusBadge}
+        grid.innerHTML = filteredCampaigns.map(c => {
+            const newsletterLink = c.newsletterId ? `/newsletter/${c.newsletterId}` : '#';
+            const newsletterTitle = c.newsletterTitle || 'Newsletter';
+
+            let scheduleInfo = '';
+            if (c.scheduledStart) {
+                scheduleInfo = `<div class="campaign-schedule">📅 ${t('dashboard.scheduled','Scheduled')}: ${new Date(c.scheduledStart).toLocaleString()}</div>`;
+            }
+            if (c.startDate) {
+                scheduleInfo += `<div class="campaign-start">🚀 ${t('dashboard.start','Start')}: ${new Date(c.startDate).toLocaleString()}</div>`;
+            }
+            if (c.endDate) {
+                scheduleInfo += `<div class="campaign-end">🏁 ${t('dashboard.end','End')}: ${new Date(c.endDate).toLocaleString()}</div>`;
+            }
+            if (c.campaignStatus === 'scheduled') {
+                scheduleInfo = `<div class="campaign-waiting">⏰ ${t('campaigns.not_started','Not started yet')}</div>` + scheduleInfo;
+            }
+
+            return `
+            <div class="campaign-card">
+                <div class="campaign-header">
+                    <span class="campaign-name">📧 ${escapeHtml(c.name)}</span>
+                    <span class="status status-${c.status.toLowerCase()}">${t('status.' + c.status.toLowerCase(), c.status)}</span>
+                </div>
+                ${scheduleInfo}
+                <div class="campaign-stats">
+                    <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">${t('campaign.sent','Sent')}</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">${t('campaign.opened','Opened')}</div></div>
+                    <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">${t('campaign.rate','Rate')}</div></div>
+                </div>
+                <div class="campaign-actions">
+                    <a href="/campaign/${c.id}" class="btn-view">📊 ${t('common.details','Details')}</a>
+                    <a href="${newsletterLink}" class="btn-newsletter" target="_blank">📧 ${t('campaign.view_newsletter','View Newsletter')}</a>
+                    <button class="btn-delete" onclick="deleteCampaign(${c.id})">🗑 ${t('common.delete','Delete')}</button>
                 </div>
             </div>
-            <div class="campaign-stats">
-                <div class="stat-item"><div class="stat-value">${c.sentCount || 0}</div><div class="stat-label">Sent</div></div>
-                <div class="stat-item"><div class="stat-value">${c.openedCount || 0}</div><div class="stat-label">Opened</div></div>
-                <div class="stat-item"><div class="stat-value">${c.openRate || 0}%</div><div class="stat-label">Rate</div></div>
+        `}).join('');
+    } catch (error) {
+        console.error('Error loading campaigns:', error);
+        grid.innerHTML = `<div class="empty"><i class="fas fa-exclamation-triangle"></i> ${t('common.error','Error loading campaigns')}</div>`;
+    }
+}
+
+async function loadRecentUsers() {
+    const container = document.getElementById('usersGrid');
+    if (!container) return;
+    container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${t('common.loading','Loading...')}</div>`;
+    try {
+        const res = await fetch(`${API_BASE}/api/users/recent`);
+        const users = await res.json();
+        if (!users || users.length === 0) {
+            container.innerHTML = `<div class="empty"><i class="fas fa-inbox"></i> ${t('dashboard.empty_users','No users yet')}</div>`;
+            return;
+        }
+        container.innerHTML = users.map(u => `
+            <div class="user-card">
+                <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="user-info">
+                    <div class="user-name">${escapeHtml(u.firstName || '')} ${escapeHtml(u.lastName || '')}</div>
+                    <div class="user-email">${escapeHtml(u.email)}</div>
+                </div>
             </div>
-            <div class="campaign-actions">
-                <a href="/campaign/${campaignId}" class="btn-view">Details</a>
-                <button class="btn-schedule" onclick="openScheduleModal(${campaignId}, '${startDate.replace(/'/g, "\\'")}', '${endDate.replace(/'/g, "\\'")}', '${scheduledStart.replace(/'/g, "\\'")}', ${retryInterval}, ${active})">Schedule</button>
-                <button class="btn-delete" onclick="deleteCampaign(${campaignId})">Delete</button>
-            </div>
-        </div>
-    `}).join('');
+        `).join('');
+    } catch (error) {
+        console.error('Error loading users:', error);
+        container.innerHTML = `<div class="empty">${t('common.error','Error loading users')}</div>`;
+    }
 }
 
 async function deleteCampaign(id) {
-    if (!confirm('Delete this campaign?')) return;
-    try {
-        await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
-        loadCampaigns();
-    } catch (error) {
-        console.error('Error deleting campaign:', error);
-        alert('Error deleting campaign');
-    }
-}
-
-async function openNewCampaignModal() {
-    await loadNewsletters();
-    document.getElementById('campaignName').value = '';
-    document.getElementById('newCampaignStartDate').value = '';
-    document.getElementById('newCampaignEndDate').value = '';
-    document.getElementById('newCampaignScheduledStart').value = '';
-    document.getElementById('newCampaignModal').style.display = 'flex';
-}
-
-function closeNewCampaignModal() {
-    document.getElementById('newCampaignModal').style.display = 'none';
-}
-
-async function loadNewsletters() {
-    const response = await fetch('/api/newsletters');
-    const newsletters = await response.json();
-    const select = document.getElementById('newsletterId');
-    select.innerHTML = '<option value="">-- Select Newsletter --</option>' +
-        newsletters.map(n => `<option value="${n.id}">${n.title || n.newsletterCode}</option>`).join('');
-}
-
-async function createCampaign() {
-    const data = {
-        name: document.getElementById('campaignName').value,
-        newsletterId: document.getElementById('newsletterId').value,
-        startDate: document.getElementById('newCampaignStartDate').value,
-        endDate: document.getElementById('newCampaignEndDate').value,
-        scheduledStart: document.getElementById('newCampaignScheduledStart').value
-    };
-
-    if (!data.name || !data.newsletterId) {
-        alert('Please fill required fields');
-        return;
-    }
-
-    try {
-        await fetch('/api/campaigns', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        closeNewCampaignModal();
-        loadCampaigns();
-    } catch (error) {
-        console.error('Error creating campaign:', error);
-        alert('Error creating campaign');
+    if (confirm(t('newsletters.delete_confirm','Delete this campaign?'))) {
+        const response = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            loadCampaigns();
+            loadStats();
+        } else {
+            alert(t('common.error','Error deleting campaign'));
+        }
     }
 }
 
@@ -144,14 +139,4 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    loadCampaigns();
-
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    const campaignStatusFilter = document.getElementById('campaignStatusFilter');
-
-    if (searchInput) searchInput.addEventListener('keyup', applyFilters);
-    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-    if (campaignStatusFilter) campaignStatusFilter.addEventListener('change', applyFilters);
-});
+document.addEventListener('DOMContentLoaded', loadData);

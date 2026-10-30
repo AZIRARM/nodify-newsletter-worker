@@ -25,7 +25,7 @@ async function loadUsers() {
 function renderUsers(users) {
     const tbody = document.getElementById('usersTableBody');
     if (!users || users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No users found</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">${t('campaign.no_current','No users found')}</td></tr>`;
         return;
     }
     tbody.innerHTML = '';
@@ -35,7 +35,9 @@ function renderUsers(users) {
         row.insertCell(1).innerHTML = escapeHtml((user.firstName || '') + ' ' + (user.lastName || ''));
         row.insertCell(2).innerHTML = user.sentAt ? new Date(user.sentAt).toLocaleString() : '-';
         row.insertCell(3).innerHTML = user.openedAt ? new Date(user.openedAt).toLocaleString() : '-';
-        row.insertCell(4).innerHTML = user.opened ? '<span class="status-open">✓ Opened</span>' : '<span class="status-not-open">✗ Not opened</span>';
+        row.insertCell(4).innerHTML = user.opened
+            ? `<span class="status-open">✓ ${t('campaign.status_open','Opened')}</span>`
+            : `<span class="status-not-open">✗ ${t('campaign.status_not_open','Not opened')}</span>`;
     });
 }
 
@@ -59,15 +61,15 @@ function goToPage(page) {
 }
 
 function retryCampaign() {
-    if (!confirm('Retry sending to users who have not received the email?')) return;
+    if (!confirm(t('campaign.retry_confirm','Retry sending to users who have not received the email?'))) return;
     fetch(`/api/campaigns/${campaignId}/retry`, { method: 'POST' })
         .then(response => {
             if (response.ok) {
-                alert('Retry started');
+                alert(t('campaign.retry_success','Retry started'));
                 loadCampaignStats();
                 loadUsers();
             } else {
-                alert('Error starting retry');
+                alert(t('campaign.retry_error','Error starting retry'));
             }
         })
         .catch(error => console.error('Error:', error));
