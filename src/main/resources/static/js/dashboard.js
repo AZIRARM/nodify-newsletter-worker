@@ -56,7 +56,7 @@ async function loadCampaigns() {
         }
 
         grid.innerHTML = filteredCampaigns.map(c => {
-            const newsletterLink = c.newsletterId ? `/api/campaigns/newsletter/${c.newsletterId}` : '#';
+            const newsletterLink = c.newsletterId ? `/api/newsletters/${c.newsletterId}` : '#';
 
             let scheduleInfo = '';
             if (c.scheduledStart) {
